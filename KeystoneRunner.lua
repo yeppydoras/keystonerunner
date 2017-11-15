@@ -8,11 +8,9 @@ local SEC_A_WEEK = 7 * 24 * 3600
 
 local MIN_REPLY_INTERVAL = 5 * 60
 local MIN_HINT_INTERVAL = 10 * 600
-local MAX_MPLUG_LOG = 1000
+local MAX_MPLUS_LOG = 1000
 local msgSep_log = "===== Weekly Mythic+ Log ====="
 local msgLogEntryID = " [%s] "
-
--- \r* 檢測到和「鑰石」有關的密語時，提示並輔助密語回覆鑰石列表。
 
 local kwAutoReply = "#key"
 local kwKeywords = "keystone|鑰石|钥石|key|鑰匙|钥匙|m%+|大秘|大米|保底|低保"
@@ -409,8 +407,8 @@ function ksr:resetData()
 end
 
 function ksr:shrinkLog()
-	if #self.MPlusLog > MAX_MPLUG_LOG then
-		local count = #self.MPlusLog - MAX_MPLUG_LOG
+	if #self.MPlusLog > MAX_MPLUS_LOG then
+		local count = #self.MPlusLog - MAX_MPLUS_LOG
 		for i = 1, count do
             table.remove(self.MPlusLog, 1)
 		end
