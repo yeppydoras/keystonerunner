@@ -1,3 +1,4 @@
+* 1.7 : Keep characters list after weekly reset
 * 1.6 : Add command "opt" [with mythicautoreply and keyautoreply]
 * 1.5 : Add "Mythic+ auto reply". Add keyword "#key" to view all keystones.
 * 1.4 : Add command "w". Extend Mythic+ log limit up to 1000.

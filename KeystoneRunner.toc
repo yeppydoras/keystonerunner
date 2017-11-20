@@ -3,7 +3,7 @@
 ## Author: 一對小兔牙@世界之樹(tw)
 ## Notes: Track your keystones and weekly best Mythic+ level. Report to Battle.net whisper, whisper, party or guild.
 ## Notes-zhTW: 記錄所有角色持有的鑰石和本周最佳M+成績，並報告到 Battle.net 密語、密語、小隊或公會。
-## Version: 1.6
+## Version: 1.7
 ## SavedVariables: KeystoneRunnerDB
 
 embeds.xml

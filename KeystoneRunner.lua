@@ -258,7 +258,12 @@ function ksr:textOfKeystone(keystone, plainText)
 	else
 		msg = safeName
 	end
-	return msg..format("(%s) %s(+%s)", keystone.class, keystone.link, keystone.keystoneLevel)
+	
+	if keystone.keystoneLevel ~= 0 then
+		return msg..format("(%s) %s(+%s)", keystone.class, keystone.link, keystone.keystoneLevel)
+	else
+		return msg..format("(%s) %s", keystone.class, L["msgNoKeystone"])
+	end
 end
 
 function ksr:textOfWeeklyBest(keystone)
@@ -416,7 +421,11 @@ function ksr:shrinkLog()
 end
 
 function ksr:weeklyResetData()
-	wipe(self.Keystones)
+	for _, ks in pairs(self.Keystones) do
+		ks.link = ""
+		ks.dungeonID = 0
+		ks.keystoneLevel = 0
+	end
 	wipe(self.WeeklyBest)
 	self:shrinkLog()
 end
@@ -490,6 +499,8 @@ function ksr:slashCmd(cmd)
 	-- advanced commands
 	elseif cmd == "cmi" then
 		print(self:getChallengeModeInfo())
+	elseif cmd == "wrd" then
+		self:weeklyResetData()
 	elseif cmd == "clear" then
 		self:resetData()
 	elseif cmdp[1] == "log" then
