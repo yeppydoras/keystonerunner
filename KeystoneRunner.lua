@@ -8,6 +8,7 @@ local SEC_A_WEEK = 7 * 24 * 3600
 
 local MIN_REPLY_INTERVAL = 5 * 60
 local MIN_HINT_INTERVAL = 10 * 600
+local MAX_AUTO_REPLY_TIMES = 3
 local MAX_MPLUS_LOG = 1000
 local msgSep_log = "===== Weekly Mythic+ Log ====="
 local msgLogEntryID = " [%s] "
@@ -138,7 +139,13 @@ function ksr:onChatMsg(event, ...)
 	
 	-- AutoReply -> ReplyMPlusDND -> isAFK -> normal keywords & hint
 	if self.Settings.autoReplyKey and msg == kwAutoReply then
-		self:announceAllKeystones(channel, ID, true, kwAutoReply)
+		-- feat: prevent spamming the whisper channel
+		if (chcannel == "PARTY") then
+			self:announceAllKeystones(channel, ID, true, kwAutoReply)
+		elseif (chcannel == "WHISPER" or channel == "BN_WHISPER") and self:checkAutoReply(ID) then
+			self:announceAllKeystones(channel, ID, true, kwAutoReply)
+			self:updateAutoReply(ID, channel)
+		end
 	elseif autoReplyMPlusDND and self:checkReplyInterval(ID) then
 		local mapName, level, killCount, bossCount, troopsString, troopsQuantityString, elapsedTime = self:getChallengeModeInfo()
 		local mplusdndmsg = format(L["msgMPlusDND"], self.name, mapName, level, killCount, bossCount, troopsString, troopsQuantityString, elapsedTime, kwAutoReply)
@@ -218,6 +225,20 @@ function ksr:checkReplyInterval(ID)
 	end
 end
 
+function ksr:checkAutoReply(ID)
+	if self.autoReply[ID] == nil then
+		return true
+	elseif GetTime() - self.autoReply[ID]["time"] >= MIN_REPLY_INTERVAL then
+		self.autoReply[ID]["time"] = nil
+		self.autoReply[ID]["times"] = nil
+		return true
+	elseif self.autoReply[ID]["times"] < MAX_AUTO_REPLY_TIMES then
+		return true
+	else
+		return false
+	end
+end
+
 function ksr:checkFilters(msg)
 	for _, v in pairs(self.Filters) do
 		if self:isLeft(msg, v) then
@@ -240,6 +261,25 @@ end
 
 function ksr:updateReplyInterval(ID)
 	self.timeReply[ID] = GetTime()
+end
+
+function ksr:updateAutoReply(ID, channel)
+	if (self.autoReply[ID] == nil) or (self.autoReply[ID]["time"] == nil) then
+		self.autoReply[ID] = {}
+		self.autoReply[ID]["time"] = GetTime()
+		self.autoReply[ID]["times"] = 1
+	else
+		self.autoReply[ID]["times"] = self.autoReply[ID]["times"] + 1
+	end
+
+	if self.autoReply[ID]["times"] >= MAX_AUTO_REPLY_TIMES then
+		self:lockAutoReply(ID, channel)
+	end
+end
+
+function ksr:lockAutoReply(ID, channel)
+	self:addChatMessage(L["msgDontSpam"], channel, ID)
+        self.autoReply[ID]["time"] = GetTime() + 15 * 60
 end
 
 function ksr:updateWeeklyBest(level)
@@ -314,9 +354,9 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	if channel == "DEFCHAT" then
 		plainText = false
 	end
-	
+
 	retVal = self:addChatMessage(L["msgHeadnote_all"], channel, ID)
-	
+
 	if next(self.Keystones) ~= nil then
 		for _, ks in pairs(self.Keystones) do
 			table.insert(sorted, ks)
@@ -332,7 +372,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	else
 		retVal = self:addChatMessage(L["msgListEmpty"], channel, ID) and retVal
 	end
-	
+
 	if autoReply then
 		retVal = self:addChatMessage(format(L["msgDespFullAutoReply"], keyword), channel, ID) and retVal
 	end
@@ -563,6 +603,7 @@ function ksr:OnInitialize()
 	self.Keywords = {}
 	self.Filters = {}
 	self.timeReply = {}
+	self.autoReply = {}
 	self.name = self:nameWithRealm(UnitName("player"))
 	self:initKeywords()
 	

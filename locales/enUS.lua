@@ -22,3 +22,5 @@ L["msgToggleMPlusAutoReply"] = "<Keystone Runner> Mythic+ auto reply Enabled : %
 L["msgToggleKeyAutoReply"] = "<Keystone Runner> Key auto reply Enabled : %s"
 L["msgUnknownOptCmd"] = "<Keystone Runner> Unknown option command"
 L["msgNoKeystone"] = "(No keystone stored)"
+-- others
+L["msgDontSpam"] = "<Keystone Runner> Enough already.(Irritated) <Auto report keystones(#key) is not available to me for a short time>"
