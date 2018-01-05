@@ -22,3 +22,5 @@ L["msgToggleMPlusAutoReply"] = "<Keystone Runner> 允許大秘境挑戰時自動
 L["msgToggleKeyAutoReply"] = "<Keystone Runner> 允許自動回覆 #key 指令：%s"
 L["msgUnknownOptCmd"] = "<Keystone Runner> 無效的選項指令"
 L["msgNoKeystone"] = "(沒有鑰石記錄)"
+-- others
+L["msgDontSpam"] = "<Keystone Runner> 這就是好奇的代價！(對你施放沈默)<短時間內無法再使用自動報告鑰石功能打擾我>"
