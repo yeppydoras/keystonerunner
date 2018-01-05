@@ -1,5 +1,6 @@
 local ksr = LibStub("AceAddon-3.0"):NewAddon("KeystoneRunner", "AceBucket-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
+local UI = _KSRGlobal.UI
 
 local ver = GetAddOnMetadata('KeystoneRunner', 'Version')
 
@@ -621,6 +622,9 @@ function ksr:OnInitialize()
 			nextResetTime = 1509462000,
 			autoReplyMPlusDND = true,
 			autoReplyKey = true,
+			minimap = {
+				hide = false,
+			},
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("KeystoneRunnerDB", {faction = dbDefaults}, true).faction
@@ -629,13 +633,14 @@ function ksr:OnInitialize()
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
 	
-	-- init keystone, events and player data
+	-- init keystone, events, player data and UI
 	-- wait for player login
 	self:RegisterBucketEvent("PLAYER_LOGIN", 3, function()
 		self:printUsage(false)
 		local keystone, _ = self:updateKeystone()
 		self:registerEvent(keystone)
 		self:initWeeklyBest()
+		UI:init(ksr)
 	end)
 
 	-- misc
