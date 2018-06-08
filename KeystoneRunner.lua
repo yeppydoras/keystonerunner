@@ -1,8 +1,16 @@
+KSR_STD_TITLE = "Keystone Runner"
+
 local ksr = LibStub("AceAddon-3.0"):NewAddon("KeystoneRunner", "AceBucket-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
-local UI = _KSRGlobal.UI
+local ver = GetAddOnMetadata("KeystoneRunner", "Version")
 
-local ver = GetAddOnMetadata('KeystoneRunner', 'Version')
+local UI = _KSRGlobal.UI
+local KSR_PREFIX = _KSRGlobal.Prefix
+local KSR_DATA_VER = _KSRGlobal.DataVer
+local KSR_MSGQUERYKSR = _KSRGlobal.MsgQueryKSR
+local KSR_MSGSEP = _KSRGlobal.MsgSep
+local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
+local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
 
 local MYTHIC_KEYSTONE_ID = 138019
 local SEC_A_WEEK = 7 * 24 * 3600
@@ -35,16 +43,12 @@ https://eu.battle.net/forums/en/wow/topic/17612252415
 
 -- Utils
 
-function ksr:log(msg)
-	print(msg)
-end
-
-function ksr:isLeft(str, left)
+local function isLeft(str, left)
 	return string.sub(str, 1, string.len(left)) == left
 end
 
-function ksr:isRight(str, right)
-	return string.sub(str, string.len(str) - string.len(right) + 1, string.len(str)) == right
+function ksr:log(msg)
+	print(msg)
 end
 
 function ksr:nameWithRealm(name, realm)
@@ -60,11 +64,16 @@ function ksr:nameWithRealm(name, realm)
 end
 
 function ksr:nameExcludeRealm(name, realm)
+
+	local function isRight(str, right)
+		return string.sub(str, string.len(str) - string.len(right) + 1, string.len(str)) == right
+	end
+
 	if name == nil or realm == nil then
 		return "[N/A]"
 	end
 	
-	if self:isRight(name, realm) then
+	if isRight(name, realm) then
 		return string.sub(name, 1, string.len(name) - string.len(realm) - 1)
 	else
 		return name
@@ -125,7 +134,7 @@ function ksr:onChatMsg(event, ...)
 	else
 		if event == "CHAT_MSG_BN_WHISPER" then
 			ID = argv[13]
-			channel = "BN_WHISPER"			
+			channel = "BN_WHISPER"
 		elseif event == "CHAT_MSG_WHISPER" then
 			ID = argv[2]
 			channel = "WHISPER"
@@ -159,6 +168,33 @@ function ksr:onChatMsg(event, ...)
 			self.MRT_Time = GetTime()
 			self.MRT_Channel = channel
 			self.MRT_ID = ID
+		end
+	end
+end
+
+function ksr:onEvent(event, ...)
+
+	local function cutLeft(str, left)
+		return string.sub(str, string.len(left) + 1, string.len(str))
+	end
+
+	if event == "BN_CHAT_MSG_ADDON" then
+		local prefix, message, w, bid = ...
+		
+		if prefix ~= KSR_PREFIX then return end
+		
+		if message == KSR_MSGQUERYKSR then
+			local replyMsg = string.format(KSR_MSGREPLYKEYS, self.battleTag, KSR_DATA_VER, self:textOfAllKeystones())
+			BNSendGameData(bid, KSR_PREFIX, replyMsg)
+		elseif isLeft(message, KSR_HEADERREPLYKEYS) then
+			-- not initialized yet, discard this message
+			if UI.ksr == nil then return end
+			local parts = { strsplit(KSR_MSGSEP, message) }
+			-- cmd, battleTag, dataver, keys
+			local battleTag = cutLeft(parts[2], "battleTag=")
+			local dataver = tonumber(cutLeft(parts[3], "dataver="))
+			local keys = cutLeft(parts[4], "keys=")
+			UI:updateFriendKeys(battleTag, dataver, keys)
 		end
 	end
 end
@@ -242,7 +278,7 @@ end
 
 function ksr:checkFilters(msg)
 	for _, v in pairs(self.Filters) do
-		if self:isLeft(msg, v) then
+		if isLeft(msg, v) then
 			return false
 		end
 	end
@@ -340,6 +376,28 @@ function ksr:announceKeystone(keystone)
 	else
 		return false
 	end
+end
+
+function ksr:textOfAllKeystones()
+	local sorted = {}
+	local msg = ""
+
+	if next(self.Keystones) ~= nil then
+		for _, ks in pairs(self.Keystones) do
+			table.insert(sorted, ks)
+		end
+
+		-- order by keystoneLevel desc
+		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
+	
+		for i = 1, #sorted do
+			msg = msg..self:textOfKeystone(sorted[i], false)..format(" [%s %s]", L["msgWeeklyBest"], self:textOfWeeklyBest(sorted[i])).."\n"
+		end
+	else
+		msg = L["msgListEmpty"]
+	end
+
+	return msg
 end
 
 function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
@@ -601,6 +659,7 @@ function ksr:OnInitialize()
 	self.MRW_ID = ""
 
 	self.chatFrame = nil
+	self.eventFrame = nil
 	self.Keywords = {}
 	self.Filters = {}
 	self.timeReply = {}
@@ -633,17 +692,30 @@ function ksr:OnInitialize()
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
 	
+	-- prepare for replying addon messages
+	local _, battleTag = BNGetInfo()
+	self.battleTag = battleTag
+	RegisterAddonMessagePrefix(KSR_PREFIX)
+	self.eventFrame = CreateFrame("Frame")
+	self.eventFrame:RegisterEvent("BN_CHAT_MSG_ADDON")
+	self.eventFrame:SetScript("OnEvent", function(obj, event, ...) self:onEvent(event, ...) end)
+	
 	-- init keystone, events, player data and UI
 	-- wait for player login
 	self:RegisterBucketEvent("PLAYER_LOGIN", 3, function()
 		self:printUsage(false)
 		local keystone, _ = self:updateKeystone()
-		self:registerEvent(keystone)
 		self:initWeeklyBest()
+		self:registerEvent(keystone)
 		UI:init(ksr)
 	end)
 
 	-- misc
 	SLASH_KEYSTONERUNNER1, SLASH_KEYSTONERUNNER2 = "/keystonerunner", "/ksr"
 	SlashCmdList["KEYSTONERUNNER"] = function(cmd) self:slashCmd(string.lower(cmd)) end
+	
+	-- Keybindings
+	-- todo: localization
+	BINDING_HEADER_KSRHEADER = KSR_STD_TITLE
+	BINDING_NAME_KSRTOGGLE = "切換Battle.net好友面板"
 end
