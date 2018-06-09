@@ -82,16 +82,8 @@ end
 
 function ksr:printUsage(help)
 	self:log(L["msgSelfDesp"]..format(" (ver: %s)", ver))
-	
-	local usage = {}
 	if help then
-		usage = { strsplit("\r", L["msgUsageDetail"]) }
-	else
-		usage = { strsplit("\r", L["msgUsageBrief"]) }
-	end
-	
-	for _, v in pairs(usage) do
-		self:log(v)
+		self:log(L["msgUsageDetail"])
 	end
 end
 
@@ -707,7 +699,7 @@ function ksr:OnInitialize()
 		local keystone, _ = self:updateKeystone()
 		self:initWeeklyBest()
 		self:registerEvent(keystone)
-		UI:init(ksr)
+		UI:init(ksr, L)
 	end)
 
 	-- misc
@@ -715,7 +707,6 @@ function ksr:OnInitialize()
 	SlashCmdList["KEYSTONERUNNER"] = function(cmd) self:slashCmd(string.lower(cmd)) end
 	
 	-- Keybindings
-	-- todo: localization
 	BINDING_HEADER_KSRHEADER = KSR_STD_TITLE
-	BINDING_NAME_KSRTOGGLE = "切換Battle.net好友面板"
+	BINDING_NAME_KSRTOGGLE = L["strToggleFriendsFrame"]
 end

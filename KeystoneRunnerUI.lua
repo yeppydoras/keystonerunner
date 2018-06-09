@@ -1,4 +1,6 @@
 local UI = {}
+local L
+
 local KSR_PREFIX = "KSRNNR"
 local KSR_DATA_VER = 1
 local KSR_MSGQUERYKSR = "QUERYKSR"
@@ -6,6 +8,7 @@ local KSR_MSGSEP = "\t"
 local KSR_HEADERREPLYKEYS = "CMD=REPLYKEYS"
 local KSR_MSGREPLYKEYS = KSR_HEADERREPLYKEYS..KSR_MSGSEP.."battleTag=%s"..KSR_MSGSEP.."dataver=%d"..KSR_MSGSEP.."keys=%s"
 _KSRGlobal = { UI = UI, Prefix = KSR_PREFIX,  DataVer = KSR_DATA_VER, MsgQueryKSR = KSR_MSGQUERYKSR, MsgSep = KSR_MSGSEP, MsgHeaderReplyKeys = KSR_HEADERREPLYKEYS, MsgReplyKeys = KSR_MSGREPLYKEYS }
+
 local MAX_QUERY_RETRY = 3
 local INTERVAL_QUERY_RETRY = 2
 local INTERVAL_HOTKEY = 0.35
@@ -28,6 +31,7 @@ local WIDTH_BUTTON = 64
 local HEIGHT_BUTTON = 64
 local MARGIN_BUTTON = 12
 
+-- textures and colors
 local FRIENDS_TEXTURE_ONLINE = "Interface\\FriendsFrame\\StatusIcon-Online"
 local FRIENDS_TEXTURE_AFK = "Interface\\FriendsFrame\\StatusIcon-Away"
 local FRIENDS_TEXTURE_DND = "Interface\\FriendsFrame\\StatusIcon-DnD"
@@ -68,8 +72,9 @@ local function trim(s)
 	return s:match'^()%s*$' and '' or s:match'^%s*(.*%S)'
 end
 
-function UI:init(ksr)
+function UI:init(ksr, locale)
 	self.ksr = ksr
+	L = locale
 	self.friendsData = {}
 	self.friendsBtns = {}
 	self.filteredData = {}
@@ -194,7 +199,7 @@ function UI:applyFilters(textSearch, theBattleTag)
 		local data = self.friendsData[i]
 
 		if theBattleTag == nil or theBattleTag == data.battleTag then
-			local strings = { safeLower(data.battleTagWOHashTag), safeLower(data.characterName), safeLower(data.realmName), safeLower(data.class), safeLower(data.noteText) }
+			local strings = { safeLower(data.battleTagWOHashTag), safeLower(data.characterName), safeLower(data.zoneName), safeLower(data.noteText) }
 			local isValid = true
 			for k = 1, #terms do
 				if not isWordInStrings(terms[k], strings) then
@@ -356,7 +361,9 @@ function UI:updateFriendPanel(theBattleTag)
 		if data.isOnline and data.client == BNET_CLIENT_WOW then
 			local zoneName = data.zoneName
 			if zoneName == nil or zoneName == "" then zoneName = UNKNOWN end
-			infoText = zoneName.." "..string.format(FRIENDS_TOOLTIP_WOW_TOON_TEMPLATE, "", data.level, data.race, data.class)
+			local realmName = data.realmName
+			if realmName == nil then realmName = "" end
+			infoText = zoneName.." "..realmName.." "..string.format(FRIENDS_TOOLTIP_WOW_TOON_TEMPLATE, "", data.level, data.race, data.class)
 		elseif data.isOnline then
 			infoText = FRIENDS_GRAY_COLOR..data.gameText..FONT_COLOR_CODE_CLOSE
 		else
@@ -366,7 +373,6 @@ function UI:updateFriendPanel(theBattleTag)
 	end
 
 	local function displayFriendStatus(data, friendKey, friendWFR)
-		-- todo: localization
 		if friendKey ~= nil then
 			if friendKey.keys == nil then return end
 			local keys = { strsplit("\n", friendKey.keys) }
@@ -380,14 +386,14 @@ function UI:updateFriendPanel(theBattleTag)
 			if friendKey.w ~= currW then
 				w = friendKey.w.." "
 			end
-			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR..string.format("Updated at: %s%s", w, friendKey.t)..FONT_COLOR_CODE_CLOSE)
+			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR..string.format(L["msgFriendStat_Updated"], w, friendKey.t)..FONT_COLOR_CODE_CLOSE)
 			self.friendsFrame.smfKeys:ScrollToBottom()
 		elseif data.client ~= BNET_CLIENT_WOW then
-			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR.."Not playing WOW"..FONT_COLOR_CODE_CLOSE)
+			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR..L["msgFriendStat_NotPlayingWoW"]..FONT_COLOR_CODE_CLOSE)
 		elseif friendWFR ~= nil then
-			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR.."Wait for response"..FONT_COLOR_CODE_CLOSE)
+			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR..L["msgFriendStat_WFR"]..FONT_COLOR_CODE_CLOSE)
 		else
-			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR.."Not installed"..FONT_COLOR_CODE_CLOSE)
+			self.friendsFrame.smfKeys:BackFillMessage(COMMENT_COLOR..L["msgFriendStat_NotInstalled"]..FONT_COLOR_CODE_CLOSE)
 		end
 	end
 
@@ -415,6 +421,7 @@ function UI:updateFriendPanel(theBattleTag)
 	elseif theBattleTag ~= nil and selBattleTag ~= theBattleTag then
 		return
 	else
+		-- self.friendsFrame.smfBrief:Hide()
 		self.friendsFrame.strName:Show()
 		self.friendsFrame.strInfo:Show()
 		self.friendsFrame.btnWhisper:Show()
@@ -469,29 +476,30 @@ function UI:selectFriendByIndex(btnidx, theBattleTag)
 		return false
 	end
 
-	if btnidx == 0 and not isSelectionInFiltered() then
-		btnidx =1
-	elseif btnidx == 0 then
-		self:updateFriendPanel(theBattleTag)
-		return
+	-- try to keep current selection in search result, otherwise select idx(1)
+	if btnidx == 0 and #self.filteredData ~= 0 and not isSelectionInFiltered() then
+		self.friendsFrame.topIndex = 1
+		btnidx = 1
 	end
 
-	local idx = self.friendsFrame.topIndex + btnidx - 1
-	local abstractData = self:abstractData()
-	if idx > #abstractData then
-		-- assert here
-		self:clearSelection()
-		return
+	if btnidx ~= 0 then
+		local idx = self.friendsFrame.topIndex + btnidx - 1
+		local abstractData = self:abstractData()
+		if idx > #abstractData then
+			-- assert here
+			self:clearSelection()
+			return
+		end
+
+		local data = abstractData[idx]
+		self.friendsFrame.selection.pid = data.pid
+		self.friendsFrame.selection.battleTag = data.battleTag
+		self.friendsFrame.selection.accName = data.accountName
+		self.friendsFrame.selection.gameAccountID = data.bnetIDGameAccount
+		self.friendsFrame.selection.guid = data.GUID
+
+		self:highlightFriendsBtn(btnidx, true)
 	end
-
-	local data = abstractData[idx]
-	self.friendsFrame.selection.pid = data.pid
-	self.friendsFrame.selection.battleTag = data.battleTag
-	self.friendsFrame.selection.accName = data.accountName
-	self.friendsFrame.selection.gameAccountID = data.bnetIDGameAccount
-	self.friendsFrame.selection.guid = data.GUID
-
-	self:highlightFriendsBtn(btnidx, true)
 	self:updateFriendPanel(theBattleTag)
 end
 
@@ -669,9 +677,10 @@ function UI:createFriendsButtons(parent)
 		friendBtn.index = i
 		friendBtn:SetScript("OnMouseUp", function(obj, button)
 				self:selectFriendByIndex(obj.index)
-				if button == "RightButton" then
-					self:inviteSelection()
-				end
+				-- todo: popup menu { invite, favTag, ... }
+				-- if button == "RightButton" then
+					-- self:inviteSelection()
+				-- end
 			end)
 		friendBtn:SetScript("OnDoubleClick", function(obj) self:whisperToSelection() end)
 		friendBtn:SetScript("OnMouseWheel", function(obj, delta) self:onScrollFriendsList(delta) end)
@@ -689,8 +698,26 @@ function UI:createFriendTBBtn(offsetX, strTexture, tooltip, parent)
 	btn:SetPushedTexture(strTexture..BTN_TEXTURE_SUFFIX_PSH)
 	btn:SetDisabledTexture(strTexture..BTN_TEXTURE_SUFFIX_DIS)
 	btn.tooltip = tooltip
+	btn:SetScript("OnEnter", function(obj)
+			if obj.tooltip == nil or obj.tooltip == "" then return end
+			-- note: anchor must be set before addline
+			local parts = { strsplit("\n", obj.tooltip) }
+			GameTooltip:SetOwner(obj, "ANCHOR_BOTTOMRIGHT", -56, -8)
+			GameTooltip:SetText(parts[1])
+			if #parts > 1 then
+				for i = 2, #parts do
+					GameTooltip:AddLine(parts[i], 0.8, 0.8, 0.8)
+				end
+			end
+			GameTooltip:Show()
+		end)
+	btn:SetScript("OnLeave", function(obj)
+			GameTooltip:Hide()
+		end)
 	return btn
 end
+
+-- todo: relative layout
 
 function UI:createSubFrame(parent, name)
 	local sf = CreateFrame("FRAME", name, parent)
@@ -721,12 +748,19 @@ function UI:createSubFrame(parent, name)
 	sf.edtSearch.iconSearch:SetSize(14, 14)
 	sf.edtSearch.iconSearch:SetPoint("TOPLEFT", sf.edtSearch, "TOPLEFT", 6, -6)
 	sf.edtSearch.iconSearch:SetTexture("Interface\\Common\\UI-Searchbox-Icon")
+	sf.edtSearch.hint = sf.edtSearch:CreateFontString(nil, "ARTWORK")
+	sf.edtSearch.hint:SetFontObject(ChatFontNormal)
+	sf.edtSearch.hint:SetSize(WIDTH_FRIENDSBTN - 48, HEIGHT_SEARCHBOX)
+	sf.edtSearch.hint:SetPoint("TOPLEFT", sf.edtSearch, "TOPLEFT", 22, 0)
+	sf.edtSearch.hint:SetJustifyH("LEFT")
+	sf.edtSearch.hint:SetJustifyV("MIDDLE")
+	sf.edtSearch.hint:SetText(COMMENT_COLOR..L["msgSearchBoxHint"]..FONT_COLOR_CODE_CLOSE)
 	sf.edtSearch:SetScript("OnEnterPressed", function(obj) obj:ClearFocus() end)
 	sf.edtSearch:SetScript("OnEscapePressed", function(obj) obj:ClearFocus() end)
 	sf.edtSearch:SetScript("OnChar", function(obj) self:onFriendSearch(self:getFriendSearchBoxText()) end)
 	sf.edtSearch:SetScript("OnKeyDown", function(obj, key) self:onKeyDown(obj, key) end)
 	sf.edtSearch:SetScript("OnKeyUp", function(obj, key) if key == "DELETE" or key == "BACKSPACE" then self:onFriendSearch(self:getFriendSearchBoxText()) end end)
-	-- todo: relative layout
+	sf.edtSearch:SetScript("OnEditFocusGained", function(obj) obj.hint:Hide() end)
 	-- sf.iconCurr = sf:CreateTexture(nil, "ARTWORK")
 	-- sf.iconCurr:SetSize(32, 32)
 	-- sf.iconCurr:SetPoint("TOPLEFT", sf, "TOPLEFT", OFFSET_X_FRIENDSINFO, -EDGE_SIZE)
@@ -746,16 +780,30 @@ function UI:createSubFrame(parent, name)
 	sf.strInfo:SetJustifyH("LEFT")
 	sf.strInfo:SetText("INFO")
 
-	-- todo: localization
-	sf.btnWhisper = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 0, BTN_WHISPER_TEXTURE, "WHISPER", sf)
+	sf.btnWhisper = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 0, BTN_WHISPER_TEXTURE, L["tooltipWhisper"], sf)
 	sf.btnWhisper:SetScript("OnClick", function(obj) self:whisperToSelection() end)
-	sf.btnInvite = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 1, BTN_INVITE_TEXTURE, "INVITE", sf)
+	sf.btnInvite = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 1, BTN_INVITE_TEXTURE, L["tooltipInvite"], sf)
 	sf.btnInvite:SetScript("OnClick", function(obj) self:inviteSelection() end)
-	sf.btnReportKeys = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 2, BTN_REPORTKEYS_TEXTURE, "REPORTKEYS", sf)
+	sf.btnReportKeys = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 2, BTN_REPORTKEYS_TEXTURE, L["tooltipReportKeys"], sf)
 	sf.btnReportKeys:SetScript("OnClick", function(obj) self:reportKeysToSelection() end)
-	sf.btnQueryKeys = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 3, BTN_QUERYKEYS_TEXTURE, "QUERYKEYS", sf)
+	sf.btnQueryKeys = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 3, BTN_QUERYKEYS_TEXTURE, L["tooltipQueryKeys"], sf)
 	sf.btnQueryKeys:SetScript("OnClick", function(obj) self:refreshKeysOfSelection() end)
-	sf.btnQueryDGInfo = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 4, BTN_QUERYDGINFO_TEXTURE, "QUERYDGINFO", sf)
+	sf.btnQueryDGInfo = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 4, BTN_QUERYDGINFO_TEXTURE, L["tooltipQueryDGInfo"], sf)
+	
+	-- todo: too ugly
+	-- sf.smfBrief = CreateFrame("ScrollingMessageFrame", nil, sf)
+	-- sf.smfBrief:SetSize(WIDTH_SMF, HEIGHT_SUBFRAME)
+	-- sf.smfBrief:SetPoint("TOPRIGHT", sf, "TOPRIGHT", 0, OFFSET_Y_SEARCHBOX)
+	-- sf.smfBrief:SetFontObject(ChatFontNormal)
+	-- self:setFontSize(sf.smfBrief, 16)
+	-- sf.smfBrief:SetInsertMode(1)
+	-- sf.smfBrief:SetJustifyH("LEFT")
+	-- sf.smfBrief:SetFading(false)
+	-- sf.smfBrief:SetSpacing(2)
+	-- sf.smfBrief:SetIndentedWordWrap(true)
+	-- sf.smfBrief:BackFillMessage(L["msgSelfDesp"])
+	-- sf.smfBrief:BackFillMessage(" ")
+	-- sf.smfBrief:BackFillMessage(L["msgBriefHint"])
 
 	sf.smfKeys = CreateFrame("ScrollingMessageFrame", nil, sf)
 	sf.smfKeys:SetSize(WIDTH_SMF, 375)
