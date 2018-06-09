@@ -355,7 +355,7 @@ function UI:updateFriendPanel(theBattleTag)
 	local function updateStrName(obj, data)
 		obj:SetText(self:getNameFromData(data))
 	end
-	
+
 	local function updateStrInfo(obj, data)
 		local infoText
 		if data.isOnline and data.client == BNET_CLIENT_WOW then
@@ -406,7 +406,7 @@ function UI:updateFriendPanel(theBattleTag)
 			break
 		end
 	end
-	
+
 	-- visible
 	if selBattleTag == "" or data == nil then
 		self.friendsFrame.strName:Hide()
@@ -612,14 +612,14 @@ function UI:onScrollFriendsList(delta)
 end
 
 function UI:onKeyDown(obj, key)
-	
+
 	local function ignoreLR(key)
 		return string.sub(key, 2, string.len(key))
 	end
 
 	if string.len(key) < 4 then return end
 	local currTime = GetTime()
-	
+
 	if self.prevKey.key == key and currTime - self.prevKey.ts <= INTERVAL_HOTKEY then
 		local ikey = ignoreLR(key)
 		if ikey == "CTRL" then
@@ -789,7 +789,7 @@ function UI:createSubFrame(parent, name)
 	sf.btnQueryKeys = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 3, BTN_QUERYKEYS_TEXTURE, L["tooltipQueryKeys"], sf)
 	sf.btnQueryKeys:SetScript("OnClick", function(obj) self:refreshKeysOfSelection() end)
 	sf.btnQueryDGInfo = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 4, BTN_QUERYDGINFO_TEXTURE, L["tooltipQueryDGInfo"], sf)
-	
+
 	-- todo: too ugly
 	-- sf.smfBrief = CreateFrame("ScrollingMessageFrame", nil, sf)
 	-- sf.smfBrief:SetSize(WIDTH_SMF, HEIGHT_SUBFRAME)
@@ -883,7 +883,7 @@ function UI:createMainFrame()
 				obj:Hide()
 			else
 				self:onKeyDown(obj, key)
-			end 
+			end
 		end)
 	mf:SetScript("OnDragStart", function(obj) obj:StartMoving() end)
 	mf:SetScript("OnDragStop", function(obj) obj:StopMovingOrSizing() end)

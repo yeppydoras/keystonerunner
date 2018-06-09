@@ -12,7 +12,7 @@ L["msgLogEmpty"] = " · No Mythic+ logged"
 L["msgLogEntryBody"] = "%s %s(+%s) { %s } Time: %s Keystone upgrade: +%s"
 -- review mark
 L["msgSelfDesp"] = "|cFFFF7D0A<Keystone Runner>|r Assemble your mythic+ team in a better way: by searching battle.net friends and share keystones information."
-L["msgSearchBoxHint"] = "pressing CONTROL twice quickly"
+L["msgSearchBoxHint"] = "pressing ctrl key twice quickly"
 L["msgUsageDetail"] = "Usage:\n/ksr - Toggle Keystone Runner window\n/ksr p - Report to party\n/ksr g - Report to guild\n/ksr s - Report to say\n/ksr w [name-realm] - Report to character(whisper)\n/ksr w - [Support battle.net whisper] Report to last player who send you message\n/ksr r - [Support battle.net whisper] Report to last player who send you message contains keywords (i.e. Keystone)\n/ksr log - View Mythic+ log\n/ksr log <keyword1> <keyword2> ... - Search Mythic+ log with keyword(s)\n/ksr opt mythicautoreply - Toggle feature: Mythic+ auto whisper respond\n/ksr opt keyautoreply - Toggle feature: Auto report keystones(#key)\n/ksr wipelog - Clean Mythic+ log\n/ksr clear - Clear all data"
 L["msgCantSendMsg"] = "<Keystone Runner> No target defined to send keystones"
 L["msgMPlusDND"] = "<Keystone Runner> %s is challenging: %s(+%s)  Boss kills: %s/%s  %s: %s Elapsed time: %s. Send me %s to view all my keystones. <Auto reply will cooldown after 5 minutes>"

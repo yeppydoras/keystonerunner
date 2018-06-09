@@ -51,35 +51,6 @@ function ksr:log(msg)
 	print(msg)
 end
 
-function ksr:nameWithRealm(name, realm)
-	if name == nil then
-		return "[N/A]"
-	end
-	
-	if (realm == nil) or (realm == "") then
-		return format("%s-%s", name, GetRealmName())
-	else
-		return format("%s-%s", name, realm)
-	end
-end
-
-function ksr:nameExcludeRealm(name, realm)
-
-	local function isRight(str, right)
-		return string.sub(str, string.len(str) - string.len(right) + 1, string.len(str)) == right
-	end
-
-	if name == nil or realm == nil then
-		return "[N/A]"
-	end
-	
-	if isRight(name, realm) then
-		return string.sub(name, 1, string.len(name) - string.len(realm) - 1)
-	else
-		return name
-	end
-end
-
 function ksr:printUsage(help)
 	self:log(L["msgSelfDesp"]..format(" (ver: %s)", ver))
 	if help then
@@ -94,17 +65,30 @@ function ksr:onBagUpdate()
 end
 
 function ksr:onChallengeModeCompleted()
+
+	function nameWRealm(name, realm)
+		if name == nil then
+			return "[N/A]"
+		end
+
+		if (realm == nil) or (realm == "") then
+			return format("%s-%s", name, GetRealmName())
+		else
+			return format("%s-%s", name, realm)
+		end
+	end
+
 	self:checkNewKeyStone()
 
 	local _, level, elapsedMS, _, keystoneUpgradeLevels = C_ChallengeMode.GetCompletionInfo()
 	self:updateWeeklyBest(level)
-	
+
 	-- log m+ data
 	local dateTime = date("%Y/%m/%d %H:%M")
 	local mapName = GetInstanceInfo()
-	local partyMember = format("%s %s %s %s %s", self.name, self:nameWithRealm(UnitName("party1")), self:nameWithRealm(UnitName("party2")), self:nameWithRealm(UnitName("party3")), self:nameWithRealm(UnitName("party4")))
+	local partyMember = format("%s %s %s %s %s", self.name, nameWRealm(UnitName("party1")), nameWRealm(UnitName("party2")), nameWRealm(UnitName("party3")), nameWRealm(UnitName("party4")))
 	local elapsedTime = SecondsToTime(elapsedMS / 1000)
-	
+
 	local newLogEntry = {name = self.name, dateTime = dateTime, mapName = mapName, level = level, partyMember = partyMember, elapsedTime = elapsedTime, keystoneUpgradeLevels = keystoneUpgradeLevels}
 	table.insert(self.MPlusLog, newLogEntry)
 end
@@ -131,14 +115,14 @@ function ksr:onChatMsg(event, ...)
 			ID = argv[2]
 			channel = "WHISPER"
 		end
-		
+
 		self.MRW_ID = ID
 		self.MRW_Channel = channel
 		name = argv[2]
 		-- bug: cant detect UnitInParty(bn_whisper_source_player)
 		autoReplyMPlusDND = self:canReplyMPlusDND(name)
 	end
-	
+
 	-- AutoReply -> ReplyMPlusDND -> isAFK -> normal keywords & hint
 	if self.Settings.autoReplyKey and msg == kwAutoReply then
 		-- feat: prevent spamming the whisper channel
@@ -172,9 +156,9 @@ function ksr:onEvent(event, ...)
 
 	if event == "BN_CHAT_MSG_ADDON" then
 		local prefix, message, w, bid = ...
-		
+
 		if prefix ~= KSR_PREFIX then return end
-		
+
 		if message == KSR_MSGQUERYKSR then
 			local replyMsg = string.format(KSR_MSGREPLYKEYS, self.battleTag, KSR_DATA_VER, self:textOfAllKeystones())
 			BNSendGameData(bid, KSR_PREFIX, replyMsg)
@@ -194,7 +178,7 @@ end
 -- Functions
 
 function ksr:canReplyMPlusDND(name)
-	if self.Settings.autoReplyMPlusDND and C_ChallengeMode.IsChallengeModeActive() and not UnitInParty(self:nameExcludeRealm(name, GetRealmName())) then
+	if self.Settings.autoReplyMPlusDND and C_ChallengeMode.IsChallengeModeActive() then
 		return true
 	else
 		return false
@@ -232,9 +216,9 @@ function ksr:getChallengeModeInfo()
 		else
 			troopsString = criteriaString
 			troopsQuantityString = math.floor(tonumber(strsub(quantityString, 1, -2)) / totalQuantity * 100).."%"
-		end		
+		end
 	end
-	
+
 	return mapName, level, killCount, bossCount, troopsString, troopsQuantityString, elapsedTime
 end
 
@@ -249,7 +233,6 @@ function ksr:checkReplyInterval(ID)
 	if (self.timeReply[ID] == nil) or (GetTime() - self.timeReply[ID] >= MIN_REPLY_INTERVAL) then
 		return true
 	else
-		--self:log(msgReplyCooldown)
 		return false
 	end
 end
@@ -274,7 +257,6 @@ function ksr:checkFilters(msg)
 			return false
 		end
 	end
-	
 	return true
 end
 
@@ -284,7 +266,7 @@ function ksr:checkKeywords(msg)
 			return true, gsub(v, "%%", "")
 		end
 	end
-	
+
 	return false, nil
 end
 
@@ -318,20 +300,33 @@ function ksr:updateWeeklyBest(level)
 end
 
 function ksr:textOfKeystone(keystone, plainText)
+
+	function cutRight(str, sep)
+		local pos = strfind(str, sep)
+		if pos then
+			return string.sub(str, 1, pos - 1)
+		else
+			return str
+		end
+	end
+
 	local msg
 	local classColor = RAID_CLASS_COLORS[keystone.classE]
+	local name = cutRight(keystone.name, "-")
 	-- bug fix: "卍" & "卐" cant send in party channel [reason : no idea]
-	local safeName = gsub(gsub(keystone.name, "卍", "←"), "卐", "→")
-	if classColor and not plainText then
-		msg = format("|c%s%s|r", classColor.colorStr, safeName)
-	else
-		msg = safeName
+	if plainText then
+		name = gsub(gsub(name, "卍", "←"), "卐", "→")
 	end
-	
-	if keystone.keystoneLevel ~= 0 then
-		return msg..format("(%s) %s(+%s)", keystone.class, keystone.link, keystone.keystoneLevel)
+	if classColor and not plainText then
+		msg = format("|c%s%s|r", classColor.colorStr, name)
 	else
-		return msg..format("(%s) %s", keystone.class, L["msgNoKeystone"])
+		msg = format("%s(%s)", name, keystone.class)
+	end
+
+	if keystone.keystoneLevel ~= 0 then
+		return msg.." "..keystone.link
+	else
+		return msg.." "..L["msgNoKeystone"]
 	end
 end
 
@@ -381,7 +376,7 @@ function ksr:textOfAllKeystones()
 
 		-- order by keystoneLevel desc
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
-	
+
 		for i = 1, #sorted do
 			msg = msg..self:textOfKeystone(sorted[i], false)..format(" [%s %s]", L["msgWeeklyBest"], self:textOfWeeklyBest(sorted[i])).."\n"
 		end
@@ -401,7 +396,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 		self:log(L["msgCantSendMsg"])
 		return
 	end
-	
+
 	if channel == "DEFCHAT" then
 		plainText = false
 	end
@@ -415,7 +410,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 
 		-- order by keystoneLevel desc
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
-	
+
 		for i = 1, #sorted do
 			local msg = " · "..self:textOfKeystone(sorted[i], plainText)..format(" [%s %s]", L["msgWeeklyBest"], self:textOfWeeklyBest(sorted[i]))
 			retVal = self:addChatMessage(msg, channel, ID) and retVal
@@ -427,7 +422,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	if autoReply then
 		retVal = self:addChatMessage(format(L["msgDespFullAutoReply"], keyword), channel, ID) and retVal
 	end
-	
+
 	if not retVal then
 		self:printUsage(true)
 	end
@@ -463,13 +458,11 @@ function ksr:updateKeystone()
 	if C_ChallengeMode.IsChallengeModeActive() then
 		return nil, nil
 	end
-	
+
 	if self:weeklyCleanUp() then
 		self:log(L["msgWeeklyCleanup"])
 		return nil, nil
 	end
-
-	local class, classE = UnitClass("player")
 
 	for bag = 0, NUM_BAG_SLOTS do
 		local numSlots = GetContainerNumSlots(bag)
@@ -481,13 +474,11 @@ function ksr:updateKeystone()
 				local dungeonID = tonumber(parts[2])
 				local keystoneLevel = tonumber(parts[3])
 
-				local newKeystone = {name = self.name, class = class, classE = classE, link = orgLink, dungeonID = dungeonID, keystoneLevel = keystoneLevel}
+				local newKeystone = { name = self.name, class = self.classL, classE = self.classE, link = orgLink, dungeonID = dungeonID, keystoneLevel = keystoneLevel }
 				local oldKeystone = self.Keystones[self.name]
 				local changed = ((oldKeystone == nil) or (oldKeystone.keystoneLevel ~= newKeystone.keystoneLevel) or (oldKeystone.dungeonID ~= newKeystone.dungeonID))
+				self.Keystones[self.name] = newKeystone
 
-				if changed then
-					self.Keystones[self.name] = newKeystone
-				end
 				return self.Keystones[self.name], changed
 			end
 		end
@@ -523,19 +514,19 @@ end
 
 function ksr:viewMPlusLog(filters)
 	self:log(msgSep_log)
-	
+
 	if next(self.MPlusLog) == nil then
 		self:log(L["msgLogEmpty"])
 	end
-	
+
 	local logCount = 0
 	for i = 1, #self.MPlusLog do
 		local validEntry = true
 		local item = self.MPlusLog[i]
 		local msgBody = format(L["msgLogEntryBody"], item.dateTime, item.mapName, item.level, item.partyMember, item.elapsedTime, item.keystoneUpgradeLevels)
-		
+
 		logCount = logCount + 1
-		
+
 		if #filters >= 2 then
 			for k = 2, #filters do
 				if not strfind(msgBody, filters[k]) then
@@ -545,12 +536,12 @@ function ksr:viewMPlusLog(filters)
 				end
 			end
 		end
-		
+
 		if validEntry then
 			self:log(format(msgLogEntryID, logCount)..msgBody)
 		end
 	end
-	
+
 	self:log(format(L["msgLogSum"], logCount))
 end
 
@@ -616,7 +607,7 @@ end
 
 function ksr:initWeeklyBest()
 	C_ChallengeMode.RequestMapInfo()
-	
+
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
 		local _, _, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(mapID)
 		if weeklyBestLevel then
@@ -627,7 +618,7 @@ end
 
 function ksr:registerEvent(keystone)
 	local interval = 3
-	
+
 	if keystone ~= nil then
 		-- set bag scanning interval to 1 min in case of unexpected events
 		interval = 60
@@ -656,11 +647,13 @@ function ksr:OnInitialize()
 	self.Filters = {}
 	self.timeReply = {}
 	self.autoReply = {}
-	self.name = self:nameWithRealm(UnitName("player"))
+	local sname = UnitName("player")
+	self.name = string.format("%s-%s", sname, GetRealmName())
+	self.classL, self.classE = UnitClass("player")
 	self:initKeywords()
-	
+
 	self.baseTime = 0
-	
+
 	-- init db
 	self.Keystones = {}
 	self.WeeklyBest = {}
@@ -683,7 +676,7 @@ function ksr:OnInitialize()
 	self.WeeklyBest = self.db.weeklybest
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
-	
+
 	-- prepare for replying addon messages
 	local _, battleTag = BNGetInfo()
 	self.battleTag = battleTag
@@ -691,7 +684,7 @@ function ksr:OnInitialize()
 	self.eventFrame = CreateFrame("Frame")
 	self.eventFrame:RegisterEvent("BN_CHAT_MSG_ADDON")
 	self.eventFrame:SetScript("OnEvent", function(obj, event, ...) self:onEvent(event, ...) end)
-	
+
 	-- init keystone, events, player data and UI
 	-- wait for player login
 	self:RegisterBucketEvent("PLAYER_LOGIN", 3, function()
@@ -705,7 +698,7 @@ function ksr:OnInitialize()
 	-- misc
 	SLASH_KEYSTONERUNNER1, SLASH_KEYSTONERUNNER2 = "/keystonerunner", "/ksr"
 	SlashCmdList["KEYSTONERUNNER"] = function(cmd) self:slashCmd(string.lower(cmd)) end
-	
+
 	-- Keybindings
 	BINDING_HEADER_KSRHEADER = KSR_STD_TITLE
 	BINDING_NAME_KSRTOGGLE = L["strToggleFriendsFrame"]
