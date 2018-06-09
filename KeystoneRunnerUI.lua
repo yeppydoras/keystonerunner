@@ -421,7 +421,7 @@ function UI:updateFriendPanel(theBattleTag)
 		self.friendsFrame.btnInvite:Show()
 		self.friendsFrame.btnReportKeys:Show()
 		self.friendsFrame.btnQueryKeys:Show()
-		self.friendsFrame.btnQueryDGInfo:Show()
+		-- self.friendsFrame.btnQueryDGInfo:Show()
 		self.friendsFrame.smfKeys:Show()
 	end
 
@@ -571,8 +571,8 @@ function UI:updateFriendsFrame(theBattleTag)
 	if textSearch ~= "" then
 		self:applyFilters(textSearch, theBattleTag)
 		self:adjustTopindex()
-		self:selectFriendByIndex(0, theBattleTag)
 	end
+	self:selectFriendByIndex(0, theBattleTag)
 	self:updateFriendsBtns()
 end
 
