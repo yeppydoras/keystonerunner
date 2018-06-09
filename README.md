@@ -1,2 +1,2 @@
 # keystonerunner
-Track your keystones and weekly best Mythic+ level. Report to Battle.net whisper, whisper, party or guild.
+Assemble your mythic+ team in a better way: by searching battle.net friends and share keystones information.
