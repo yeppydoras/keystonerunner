@@ -1,12 +1,27 @@
 -- localization file for English
 local L = LibStub("AceLocale-3.0"):NewLocale("KeystoneRunner", "enUS", true)
 
+-- abbr. of dungeon names
+L["DIDv7_197"] = "EOA"
+L["DIDv7_198"] = "DHT"
+L["DIDv7_199"] = "BRH"
+L["DIDv7_200"] = "HOV"
+L["DIDv7_206"] = "NL"
+L["DIDv7_207"] = "VOTW"
+L["DIDv7_208"] = "MOS"
+L["DIDv7_209"] = "ARC"
+L["DIDv7_210"] = "COS"
+L["DIDv7_227"] = "LOWR"
+L["DIDv7_233"] = "COEN"
+L["DIDv7_234"] = "UPPR"
+L["DIDv7_239"] = "SEAT"
+
 L["msgHeadnote_new"] = "<Keystone Runner> Report new keystone:"
 L["msgHeadnote_all"] = "<Keystone Runner> Report all keystones:"
 L["msgListEmpty"] = " · No keystone logged"
 L["msgDespFullAutoReply"] = "<Keystone Runner> detected keyword <%s> and report keystones automatically"
 L["msgWeeklyCleanup"] = "<Keystone Runner> Weekly reset. Removing data of previous week."
-L["msgWeeklyBest"] = "Weekly best"
+L["msgWeeklyBest"] = "[Weekly best %s]"
 L["msgLogSum"] = "Found: %s Mythic+ log(s) <<"
 L["msgLogEmpty"] = " · No Mythic+ logged"
 L["msgLogEntryBody"] = "%s %s(+%s) { %s } Time: %s Keystone upgrade: +%s"

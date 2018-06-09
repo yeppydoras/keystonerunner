@@ -1,12 +1,27 @@
 -- localization file for Traditional Chinese
 local L = LibStub("AceLocale-3.0"):NewLocale("KeystoneRunner", "zhTW")
 
+-- abbr. of dungeon names
+L["DIDv7_197"] = "艾眼"
+L["DIDv7_198"] = "暗心"
+L["DIDv7_199"] = "玄鴉"
+L["DIDv7_200"] = "英靈"
+L["DIDv7_206"] = "奈薩"
+L["DIDv7_207"] = "看守"
+L["DIDv7_208"] = "靈喉"
+L["DIDv7_209"] = "地道"
+L["DIDv7_210"] = "眾星"
+L["DIDv7_227"] = "卡下"
+L["DIDv7_233"] = "永夜"
+L["DIDv7_234"] = "卡上"
+L["DIDv7_239"] = "三傑"
+
 L["msgHeadnote_new"] = "<Keystone Runner> 報告新鑰石："
 L["msgHeadnote_all"] = "<Keystone Runner> 報告所有鑰石："
 L["msgListEmpty"] = " · 目前沒有任何鑰石被記錄下來哦。"
 L["msgDespFullAutoReply"] = "<Keystone Runner> 發現關鍵字「%s」並因此自動發送了鑰石列表。"
 L["msgWeeklyCleanup"] = "<Keystone Runner> 新的一週開始了，上週的數據已經清除。"
-L["msgWeeklyBest"] = "本周最佳"
+L["msgWeeklyBest"] = "[本周最佳 %s]"
 L["msgLogSum"] = "找到了 %s 條M+挑戰日誌 <<"
 L["msgLogEmpty"] = " · 目前沒有任何M+挑戰被記錄下來哦。"
 L["msgLogEntryBody"] = "%s %s(+%s) { %s } 耗時：%s 鑰石升級：+%s"

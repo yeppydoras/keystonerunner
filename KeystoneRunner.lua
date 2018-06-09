@@ -323,8 +323,8 @@ function ksr:textOfKeystone(keystone, plainText)
 		msg = format("%s(%s)", name, keystone.class)
 	end
 
-	if keystone.keystoneLevel ~= 0 then
-		return msg.." "..keystone.link
+	if keystone.keystoneLevel ~= 0 and keystone.dungeonID ~= 0 then
+		return msg.." "..L[string.format("DIDv7_%d", keystone.dungeonID)]..string.format("(%d)", keystone.keystoneLevel)
 	else
 		return msg.." "..L["msgNoKeystone"]
 	end
@@ -333,9 +333,9 @@ end
 function ksr:textOfWeeklyBest(keystone)
 	local weeklyBest = self.WeeklyBest[keystone.name]
 	if (weeklyBest == nil) or (weeklyBest == 0) then
-		return "N/A"
+		return format(L["msgWeeklyBest"], "N/A")
 	else
-		return format("+%s", weeklyBest)
+		return format(L["msgWeeklyBest"], "+"..tostring(weeklyBest))
 	end
 end
 
@@ -378,7 +378,7 @@ function ksr:textOfAllKeystones()
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
 
 		for i = 1, #sorted do
-			msg = msg..self:textOfKeystone(sorted[i], false)..format(" [%s %s]", L["msgWeeklyBest"], self:textOfWeeklyBest(sorted[i])).."\n"
+			msg = msg..self:textOfKeystone(sorted[i], false).." "..self:textOfWeeklyBest(sorted[i]).."\n"
 		end
 	else
 		msg = L["msgListEmpty"]
@@ -412,7 +412,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
 
 		for i = 1, #sorted do
-			local msg = " · "..self:textOfKeystone(sorted[i], plainText)..format(" [%s %s]", L["msgWeeklyBest"], self:textOfWeeklyBest(sorted[i]))
+			local msg = " · "..self:textOfKeystone(sorted[i], plainText).." "..self:textOfWeeklyBest(sorted[i])
 			retVal = self:addChatMessage(msg, channel, ID) and retVal
 		end
 	else
@@ -593,6 +593,8 @@ function ksr:slashCmd(cmd)
 		self:wipelog()
 	elseif cmd == "help" then
 		self:printUsage(true)
+	elseif cmd == "" then
+		ToggleFrame(KeystoneRunnerMainFrame)
 	else
 		self:announceAllKeystones("DEFCHAT", nil, false)
 	end
