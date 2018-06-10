@@ -668,6 +668,7 @@ function ksr:OnInitialize()
 			nextResetTime = 1509462000,
 			autoReplyMPlusDND = true,
 			autoReplyKey = true,
+			renderNameWClassColor = false,
 			minimap = {
 				hide = false,
 			},

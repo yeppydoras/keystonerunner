@@ -80,6 +80,12 @@ function UI:init(ksr, locale)
 	self.filteredData = {}
 	self.friendsHasKSR = {}
 	self.friendsWaitForResp = {}
+	self.classLookup = {}
+	local classL = {}
+	FillLocalizedClassList(classL)
+	for k, v in pairs(classL) do
+		self.classLookup[v] = k
+	end
 	self.prevKey = { key = "", ts = 0 }
 	self.playerFaction = UnitFactionGroup("player")
 	self.keystonerunnerLDB = LibStub("LibDataBroker-1.1"):NewDataObject("KeystoneRunner", {
@@ -118,7 +124,14 @@ function UI:getNameFromData(data)
 	end
 
 	if ((data.client == BNET_CLIENT_WOW) and (self.playerFaction == data.faction)) then
-		return accName.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..charName..")"..FONT_COLOR_CODE_CLOSE
+		local classColor = RAID_CLASS_COLORS[self.classLookup[data.class]]
+		local colorCode
+		if self.ksr.Settings.renderNameWClassColor and classColor ~= nil then
+			colorCode = "|c"..RAID_CLASS_COLORS[self.classLookup[data.class]].colorStr
+		else
+			colorCode = FRIENDS_WOW_NAME_COLOR_CODE
+		end
+		return accName.." "..colorCode.."("..charName..")"..FONT_COLOR_CODE_CLOSE
 	elseif charName then
 		return accName.." "..FRIENDS_OTHER_NAME_COLOR_CODE.."("..charName..")"..FONT_COLOR_CODE_CLOSE
 	else
@@ -212,12 +225,15 @@ function UI:applyFilters(textSearch, theBattleTag)
 				table.insert(self.filteredData, data)
 			elseif theBattleTag ~= nil then
 				for k = 1, #self.filteredData do
-					if self.filteredData[k].battleTag == theBattleTag and isValid then
-						self.filteredData[k] = data
-						return "IUF_UPDATE"
-					elseif self.filteredData[k].battleTag == theBattleTag and not isValid then
-						table.remove(self.filteredData, k)
-						return "IUF_DELETE"
+					if self.filteredData[k].battleTag == theBattleTag then
+						if  isValid then
+						    -- only a placeholder
+							self.filteredData[k] = data
+							return "IUF_UPDATE"
+						else
+							table.remove(self.filteredData, k)
+							return "IUF_DELETE"
+						end
 					end
 				end
 
@@ -235,7 +251,7 @@ function UI:adjustTopindex()
 	if self.friendsFrame.topIndex  - 1 + COUNT_FRIENDSBTN > dataLen then
 		self.friendsFrame.topIndex = dataLen - COUNT_FRIENDSBTN + 1
 	end
-	if self.friendsFrame.topIndex < 0 then
+	if self.friendsFrame.topIndex <= 0 then
 		self.friendsFrame.topIndex = 1
 	end
 end
@@ -564,11 +580,15 @@ function UI:updateFriendsBtns()
 		if i > #abstractData then
 			btn:Hide()
 		else
-			btn:Show()
-			local data = abstractData[i + self.friendsFrame.topIndex - 1]
-			updateBtnDrawings(data, btn)
-			updateBtnName(data, btn)
-			updateBtnInfo(data, btn)
+			if i + self.friendsFrame.topIndex - 1 > #abstractData then
+				-- assert here
+			else
+				btn:Show()
+				local data = abstractData[i + self.friendsFrame.topIndex - 1]
+				updateBtnDrawings(data, btn)
+				updateBtnName(data, btn)
+				updateBtnInfo(data, btn)
+			end
 		end
 	end
 end
@@ -790,7 +810,7 @@ function UI:createSubFrame(parent, name)
 	sf.btnQueryKeys:SetScript("OnClick", function(obj) self:refreshKeysOfSelection() end)
 	sf.btnQueryDGInfo = self:createFriendTBBtn((WIDTH_BUTTON + MARGIN_BUTTON) * 4, BTN_QUERYDGINFO_TEXTURE, L["tooltipQueryDGInfo"], sf)
 
-	-- todo: too ugly
+	-- todo: too ugly to show
 	-- sf.smfBrief = CreateFrame("ScrollingMessageFrame", nil, sf)
 	-- sf.smfBrief:SetSize(WIDTH_SMF, HEIGHT_SUBFRAME)
 	-- sf.smfBrief:SetPoint("TOPRIGHT", sf, "TOPRIGHT", 0, OFFSET_Y_SEARCHBOX)
