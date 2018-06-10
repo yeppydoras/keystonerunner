@@ -15,8 +15,8 @@ local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
 local MYTHIC_KEYSTONE_ID = 138019
 local SEC_A_WEEK = 7 * 24 * 3600
 
-local MIN_REPLY_INTERVAL = 5 * 60
-local MIN_HINT_INTERVAL = 10 * 600
+local MIN_REPLY_INTERVAL = 15 * 60
+local MIN_HINT_INTERVAL = 60 * 60
 local MAX_AUTO_REPLY_TIMES = 3
 local MAX_MPLUS_LOG = 1000
 local msgSep_log = "===== Weekly Mythic+ Log ====="
@@ -324,7 +324,7 @@ function ksr:textOfKeystone(keystone, plainText)
 	end
 
 	if keystone.keystoneLevel ~= 0 and keystone.dungeonID ~= 0 then
-		return msg.." "..L[string.format("DIDv7_%d", keystone.dungeonID)]..string.format("(%d)", keystone.keystoneLevel)
+		return msg.." "..string.format("[%s%d]", L[string.format("DIDv7_%d", keystone.dungeonID)], keystone.keystoneLevel)
 	else
 		return msg.." "..L["msgNoKeystone"]
 	end
