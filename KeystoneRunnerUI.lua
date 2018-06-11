@@ -50,10 +50,10 @@ local BTN_WHISPER_TEXTURE = "Interface\\AddOns\\KeystoneRunner\\media\\btnWhispe
 local BTN_REPORTKEYS_TEXTURE = "Interface\\AddOns\\KeystoneRunner\\media\\btnReportKeys"
 local BTN_QUERYKEYS_TEXTURE = "Interface\\AddOns\\KeystoneRunner\\media\\btnQueryKeys"
 local BTN_QUERYDGINFO_TEXTURE = "Interface\\AddOns\\KeystoneRunner\\media\\btnQueryDGInfo"
-local BTNS_HIGHLIGHT_TEXTURE = "Interface\\AddOns\\KeystoneRunner\\media\\btns_HLT.tga"
 local BTN_TEXTURE_SUFFIX_NML = "_NML.tga"
 local BTN_TEXTURE_SUFFIX_DIS = "_DIS.tga"
 local BTN_TEXTURE_SUFFIX_PSH = "_PSH.tga"
+local CLASS_ICONS = "Interface\\AddOns\\KeystoneRunner\\media\\ClassIcon_%s.tga"
 
 function dumptbl(t)
 	for k, v in pairs(t) do
@@ -124,10 +124,9 @@ function UI:getNameFromData(data)
 	end
 
 	if ((data.client == BNET_CLIENT_WOW) and (self.playerFaction == data.faction)) then
-		local classColor = RAID_CLASS_COLORS[self.classLookup[data.class]]
 		local colorCode
-		if self.ksr.Settings.renderNameWClassColor and classColor ~= nil then
-			colorCode = "|c"..RAID_CLASS_COLORS[self.classLookup[data.class]].colorStr
+		if self.ksr.Settings.renderNameWClassColor then
+			colorCode = "|c"..RAID_CLASS_COLORS[data.classE].colorStr
 		else
 			colorCode = FRIENDS_WOW_NAME_COLOR_CODE
 		end
@@ -275,7 +274,7 @@ function UI:updateFriendsData(theBattleTag)
 		end
 		local newFDEntry = { ID = i, pid = pid, accountName = accountName, battleTag = battleTag, battleTagWOHashTag = battleTagWOHashTag, isBattleTag = isBattleTag,
 			characterName = characterName, bnetIDGameAccount = bnetIDGameAccount, client = client, isOnline = isOnline, lastOnline = lastOnline, isBnetAFK = isBnetAFK, isBnetDND = isBnetDND, noteText = noteText,
-			realmName = realmName, realmID = realmID, faction = faction, race = race, class = class, zoneName = zoneName, level = level, gameText = gameText,
+			realmName = realmName, realmID = realmID, faction = faction, race = race, class = class, classE = self.classLookup[class], zoneName = zoneName, level = level, gameText = gameText,
 			bnetIDAccount = bnetIDAccount, isGameAFK = isGameAFK, isGameBusy = isGameBusy, GUID = GUID
 		}
 		table.insert(self.friendsData, newFDEntry)
@@ -531,7 +530,11 @@ function UI:updateFriendsBtns()
 			else
 				btn.iconStatus:SetTexture(FRIENDS_TEXTURE_ONLINE)
 			end
-			btn.iconClient:SetTexture(BNet_GetClientTexture(data.client))
+			if data.client == BNET_CLIENT_WOW then
+				btn.iconClient:SetTexture(string.format(CLASS_ICONS, data.classE))
+			else
+				btn.iconClient:SetTexture(BNet_GetClientTexture(data.client))
+			end
 			btn.iconClient:Show()
 			btn.t:SetColorTexture(FRIENDS_BNET_BACKGROUND_COLOR.r, FRIENDS_BNET_BACKGROUND_COLOR.g, FRIENDS_BNET_BACKGROUND_COLOR.b, FRIENDS_BNET_BACKGROUND_COLOR.a)
 		else

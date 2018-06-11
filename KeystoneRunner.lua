@@ -24,7 +24,7 @@ local msgLogEntryID = " [%s] "
 
 local kwAutoReply = "#key"
 local kwKeywords = "keystone|鑰石|钥石|key|鑰匙|钥匙|m%+|大秘|大米|保底|低保"
-local kwFilters = "<keystone runner>|keystone runner| · "
+local kwFilters = "<keystone runner>|keystone runner|."
 
 --[[
 
@@ -320,7 +320,7 @@ function ksr:textOfKeystone(keystone, plainText)
 	if classColor and not plainText then
 		msg = format("|c%s%s|r", classColor.colorStr, name)
 	else
-		msg = format("%s(%s)", name, keystone.class)
+		msg = format("%s(%s)", name, L[string.format("ABBR_%s", keystone.classE)])
 	end
 
 	if keystone.keystoneLevel ~= 0 and keystone.dungeonID ~= 0 then
@@ -412,7 +412,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
 
 		for i = 1, #sorted do
-			local msg = " · "..self:textOfKeystone(sorted[i], plainText).." "..self:textOfWeeklyBest(sorted[i])
+			local msg = "."..self:textOfKeystone(sorted[i], plainText).." "..self:textOfWeeklyBest(sorted[i])
 			retVal = self:addChatMessage(msg, channel, ID) and retVal
 		end
 	else
