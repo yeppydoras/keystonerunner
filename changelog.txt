@@ -1,3 +1,4 @@
+* 2.3: Display class icon instead of WoW icon in friends list. Display abbr. of classes.
 * 2.2: Fix bug about include file of ACE lib. Modify Mythic+ DND autoreply interval to 15 mins.
 * 2.1: Display player name w/o realm name. Display abbr. of dungeon names.
 * 2.0: Brand new Battle.net friends window: Search friends and share keystones information.
