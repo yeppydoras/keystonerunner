@@ -624,7 +624,7 @@ function ksr:initWeeklyBest()
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
 		local _, _, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(mapID)
 		-- debug
-		print(mapID, weeklyBestLevel)
+		-- print(mapID, weeklyBestLevel)
 		if weeklyBestLevel then
 			self:updateWeeklyBest(weeklyBestLevel)
 		end
