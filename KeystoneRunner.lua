@@ -89,7 +89,8 @@ function ksr:onChallengeModeCompleted()
 	local partyMember = format("%s %s %s %s %s", self.name, nameWRealm(UnitName("party1")), nameWRealm(UnitName("party2")), nameWRealm(UnitName("party3")), nameWRealm(UnitName("party4")))
 	local elapsedTime = SecondsToTime(elapsedMS / 1000)
 
-	local newLogEntry = {name = self.name, dateTime = dateTime, mapName = mapName, level = level, partyMember = partyMember, elapsedTime = elapsedTime, keystoneUpgradeLevels = keystoneUpgradeLevels}
+	local newLogEntry = { name = self.name, dateTime = dateTime, mapName = mapName, level = level, partyMember = partyMember, 
+		elapsedTime = elapsedTime, keystoneUpgradeLevels = keystoneUpgradeLevels }
 	table.insert(self.MPlusLog, newLogEntry)
 end
 
@@ -395,6 +396,12 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	if channel == "" or ID == "" then
 		self:log(L["msgCantSendMsg"])
 		return
+	elseif channel == "PARTY" and not IsInGroup(LE_PARTY_CATEGORY_HOME) then
+		self:log(L["msgNotInGroup"])
+		return
+	elseif channel == "GUILD" and GetGuildInfo("player") == nil then
+		self:log(L["msgNotInGuild"])
+		return
 	end
 
 	if channel == "DEFCHAT" then
@@ -402,7 +409,6 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	end
 
 	retVal = self:addChatMessage(L["msgHeadnote_all"], channel, ID)
-
 	if next(self.Keystones) ~= nil then
 		for _, ks in pairs(self.Keystones) do
 			table.insert(sorted, ks)
@@ -479,6 +485,11 @@ function ksr:updateKeystone()
 				local changed = ((oldKeystone == nil) or (oldKeystone.keystoneLevel ~= newKeystone.keystoneLevel) or (oldKeystone.dungeonID ~= newKeystone.dungeonID))
 				self.Keystones[self.name] = newKeystone
 
+				-- Send Addon message is better, instead of call UI function
+				if changed then
+					UI:updateMyKeys()
+				end
+				
 				return self.Keystones[self.name], changed
 			end
 		end
@@ -565,17 +576,17 @@ function ksr:slashCmd(cmd)
 	local cmdp = { strsplit(" ", cmd) }
 	-- cant send BN whisper by command
 	if cmd == "p" or cmd == "party" then
-		self:announceAllKeystones("PARTY", nil, false)
+		self:announceAllKeystones("PARTY")
 	elseif cmd == "g" or cmd == "guild" then
-		self:announceAllKeystones("GUILD", nil, false)
+		self:announceAllKeystones("GUILD")
 	elseif cmd == "s" or cmd == "say" then
-		self:announceAllKeystones("SAY", nil, false)
+		self:announceAllKeystones("SAY")
 	elseif cmd == "w" or cmd == "whisper" then
-		self:announceAllKeystones(self.MRW_Channel, self.MRW_ID, false)
+		self:announceAllKeystones(self.MRW_Channel, self.MRW_ID)
 	elseif (cmdp[1] == "w" or cmdp[1] == "whisper") and #cmdp == 2 then
-		self:announceAllKeystones("WHISPER", cmdp[2], false)
+		self:announceAllKeystones("WHISPER", cmdp[2])
 	elseif cmd == "r" or cmd == "reply" then
-		self:announceAllKeystones(self.MRT_Channel, self.MRT_ID, false, nil)
+		self:announceAllKeystones(self.MRT_Channel, self.MRT_ID)
 	elseif (cmdp[1] == "opt" or cmdp[1] == "option") and #cmdp >= 2 then
 		self:procOptions(cmdp)
 	-- advanced commands
@@ -596,7 +607,7 @@ function ksr:slashCmd(cmd)
 	elseif cmd == "" then
 		ToggleFrame(KeystoneRunnerMainFrame)
 	else
-		self:announceAllKeystones("DEFCHAT", nil, false)
+		self:announceAllKeystones("DEFCHAT")
 	end
 end
 
@@ -674,7 +685,7 @@ function ksr:OnInitialize()
 			},
 		},
 	}
-	self.db = LibStub("AceDB-3.0"):New("KeystoneRunnerDB", {faction = dbDefaults}, true).faction
+	self.db = LibStub("AceDB-3.0"):New("KeystoneRunnerDB", { faction = dbDefaults }, true).faction
 	self.Keystones = self.db.keystones
 	self.WeeklyBest = self.db.weeklybest
 	self.MPlusLog = self.db.mpluslog
