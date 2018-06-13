@@ -311,23 +311,23 @@ function ksr:textOfKeystone(keystone, plainText)
 		end
 	end
 
-	local msg
+	local strNameClass
 	local classColor = RAID_CLASS_COLORS[keystone.classE]
 	local name = cutRight(keystone.name, "-")
 	-- bug fix: "卍" & "卐" cant send in party channel [reason : no idea]
 	if plainText then
 		name = gsub(gsub(name, "卍", "←"), "卐", "→")
 	end
-	if classColor and not plainText then
-		msg = format("|c%s%s|r", classColor.colorStr, name)
+	if keystone.classE ~= nil and classColor ~= nil and not plainText then
+		strNameClass = format("|c%s%s|r", classColor.colorStr, name)
 	else
-		msg = format("%s(%s)", name, L[string.format("ABBR_%s", keystone.classE)])
+		strNameClass = format("%s(%s)", name, L[string.format("ABBR_%s", keystone.classE)])
 	end
 
 	if keystone.keystoneLevel ~= 0 and keystone.dungeonID ~= 0 then
-		return msg.." "..string.format("[%s%d]", L[string.format("DIDv7_%d", keystone.dungeonID)], keystone.keystoneLevel)
+		return string.format("[%s%d]", L[string.format("DIDv7_%d", keystone.dungeonID)], keystone.keystoneLevel).." "..strNameClass
 	else
-		return msg.." "..L["msgNoKeystone"]
+		return L["msgNoKeystone"].." "..strNameClass
 	end
 end
 
@@ -486,7 +486,7 @@ function ksr:updateKeystone()
 				self.Keystones[self.name] = newKeystone
 
 				-- Send Addon message is better, instead of call UI function
-				if changed then
+				if changed and UI ~= nil then
 					UI:updateMyKeys()
 				end
 				
@@ -623,6 +623,8 @@ function ksr:initWeeklyBest()
 
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
 		local _, _, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(mapID)
+		-- debug
+		print(mapID, weeklyBestLevel)
 		if weeklyBestLevel then
 			self:updateWeeklyBest(weeklyBestLevel)
 		end
@@ -703,10 +705,11 @@ function ksr:OnInitialize()
 	-- wait for player login
 	self:RegisterBucketEvent("PLAYER_LOGIN", 3, function()
 		self:printUsage(false)
+		UI:init(ksr, L)
 		local keystone, _ = self:updateKeystone()
 		self:initWeeklyBest()
+		UI:updateMyKeys()
 		self:registerEvent(keystone)
-		UI:init(ksr, L)
 	end)
 
 	-- misc

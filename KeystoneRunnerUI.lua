@@ -114,7 +114,6 @@ function UI:init(ksr, locale)
 	self.friendsFrame = self:createSubFrame_Friends(self.mainFrame)
 	table.insert(self.mainFrame.tabPages, self.friendsFrame)
 	self.mykeysFrame = self:createSubFrame_Mykeys(self.mainFrame)
-	self:updateMyKeys()
 	table.insert(self.mainFrame.tabPages, self.mykeysFrame)
 
 	self.timerQuery = C_Timer.NewTicker(1, function() self:onTimerQuery() end)
@@ -139,7 +138,7 @@ function UI:getNameFromData(data)
 
 	if data.isOnline and data.client == BNET_CLIENT_WOW and self.playerFaction == data.faction then
 		local colorCode
-		if self.ksr.Settings.renderNameWClassColor and data.classE ~= nil then
+		if self.ksr ~= nil and self.ksr.Settings.renderNameWClassColor and data.classE ~= nil then
 			colorCode = "|c"..RAID_CLASS_COLORS[data.classE].colorStr
 		else
 			colorCode = FRIENDS_WOW_NAME_COLOR_CODE
@@ -188,6 +187,7 @@ function UI:updateFriendKeys(battleTag, dataver, keys)
 end
 
 function UI:updateMyKeys()
+	if self.ksr == nil then return end
 	local keysText = self.ksr:textOfAllKeystones()
 	if keysText == nil or keysText == "" then return end
 	local keys = { strsplit("\n", keysText) }
@@ -364,7 +364,7 @@ end
 
 function UI:reportKeysToSelection()
 	local selPID = self.friendsFrame.selection.pid
-	if selPID == nil or selPID == 0 then return end
+	if self.ksr == nil or selPID == nil or selPID == 0 then return end
 
 	self.ksr:announceAllKeystones("BN_WHISPER", selPID)
 end
