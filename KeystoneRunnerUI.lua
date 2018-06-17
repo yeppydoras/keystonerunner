@@ -305,7 +305,6 @@ function UI:updateFriendsData(theBattleTag)
 		local classE = self.classLookup[class]
 		if isOnline and client == BNET_CLIENT_WOW and classE == nil then
 			-- assert here
-			-- debug
 			-- print("bt, charName, class, isOnline: ", battleTag, characterName, class, isOnline)
 			-- print(classE.a)
 		end
@@ -993,6 +992,7 @@ function UI:createMainFrame()
 	mf:RegisterEvent("BN_FRIEND_LIST_SIZE_CHANGED")
 	mf:SetScript("OnShow", function(obj)
 			self:updateFriendsFrame()
+			self:updateMyKeys()
 			obj:RegisterEvent("BN_FRIEND_INFO_CHANGED")
 			obj:SetPropagateKeyboardInput(true)
 			PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)

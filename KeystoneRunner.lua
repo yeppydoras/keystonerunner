@@ -173,6 +173,9 @@ function ksr:onEvent(event, ...)
 			local keys = cutLeft(parts[4], "keys=")
 			UI:updateFriendKeys(battleTag, dataver, keys)
 		end
+	elseif event == "CHALLENGE_MODE_MAPS_UPDATE" then
+		self:initWeeklyBest()
+		self.eventFrame:UnregisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
 	end
 end
 
@@ -619,12 +622,8 @@ function ksr:initKeywords()
 end
 
 function ksr:initWeeklyBest()
-	C_ChallengeMode.RequestMapInfo()
-
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
 		local _, _, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(mapID)
-		-- debug
-		-- print(mapID, weeklyBestLevel)
 		if weeklyBestLevel then
 			self:updateWeeklyBest(weeklyBestLevel)
 		end
@@ -641,7 +640,7 @@ function ksr:registerEvent(keystone)
 	self:RegisterBucketEvent("BAG_UPDATE", interval, "onBagUpdate")
 	self:RegisterBucketEvent("CHALLENGE_MODE_COMPLETED", 3, "onChallengeModeCompleted")
 
-	self.chatFrame = CreateFrame("Frame")
+	self.chatFrame = CreateFrame("FRAME")
 	self.chatFrame:RegisterEvent("CHAT_MSG_WHISPER")
 	self.chatFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
 	self.chatFrame:RegisterEvent("CHAT_MSG_PARTY")
@@ -665,6 +664,9 @@ function ksr:OnInitialize()
 	local sname = UnitName("player")
 	self.name = string.format("%s-%s", sname, GetRealmName())
 	self.classL, self.classE = UnitClass("player")
+	local _, battleTag = BNGetInfo()
+	self.battleTag = battleTag
+	
 	self:initKeywords()
 
 	self.baseTime = 0
@@ -693,23 +695,22 @@ function ksr:OnInitialize()
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
 
+	UI:init(ksr, L)
+	
 	-- prepare for replying addon messages
-	local _, battleTag = BNGetInfo()
-	self.battleTag = battleTag
 	RegisterAddonMessagePrefix(KSR_PREFIX)
-	self.eventFrame = CreateFrame("Frame")
+	self.eventFrame = CreateFrame("FRAME")
 	self.eventFrame:RegisterEvent("BN_CHAT_MSG_ADDON")
+	self.eventFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
 	self.eventFrame:SetScript("OnEvent", function(obj, event, ...) self:onEvent(event, ...) end)
 
 	-- init keystone, events, player data and UI
 	-- wait for player login
-	self:RegisterBucketEvent("PLAYER_LOGIN", 3, function()
+	self:RegisterBucketEvent("PLAYER_LOGIN", 1, function()
 		self:printUsage(false)
-		UI:init(ksr, L)
 		local keystone, _ = self:updateKeystone()
-		self:initWeeklyBest()
-		UI:updateMyKeys()
 		self:registerEvent(keystone)
+		C_ChallengeMode.RequestMapInfo()
 	end)
 
 	-- misc
