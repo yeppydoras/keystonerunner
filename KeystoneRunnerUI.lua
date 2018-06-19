@@ -1,7 +1,7 @@
 local UI = {}
-local L
-
 _KSRGlobal.UI = UI
+
+local L = _KSRGlobal.L
 local KSR_PREFIX = _KSRGlobal.Prefix
 local KSR_DATA_VER = _KSRGlobal.DataVer
 local KSR_MSGQUERYKSR = _KSRGlobal.MsgQueryKSR
@@ -75,9 +75,8 @@ StaticPopupDialogs["KSR_CONFIRM_REPORTKEYS"] = {
 
 -- init
 
-function UI:init(ksr, locale)
+function UI:init(ksr)
 	self.ksr = ksr
-	L = locale
 	self.friendsData = {}
 	self.friendsBtns = {}
 	self.filteredData = {}
@@ -107,8 +106,6 @@ function UI:init(ksr, locale)
 	table.insert(self.mainFrame.tabPages, self.friendsFrame)
 	self.mykeysFrame = self:createSubFrame_Mykeys(self.mainFrame)
 	table.insert(self.mainFrame.tabPages, self.mykeysFrame)
-
-	self:clearSelection()
 	
 	self.timerQuery = C_Timer.NewTicker(1, function() self:onTimerQuery() end)
 	StaticPopupDialogs["KSR_CONFIRM_REPORTKEYS"].text = L["msgConfirmReportKeys"]
@@ -349,9 +346,14 @@ function UI:inviteSelection()
 	if selGUID == nil or selGUID == "" or selGameAccountID == nil or selGameAccountID == 0 then return end
 
 	local inviteType = GetDisplayedInviteType(selGUID)
-	if inviteType == "INVITE" or inviteType == "SUGGEST_INVITE" then
+	if inviteType == "INVITE" then
+		print(string.format(L["msgInviteSelFriend"], self.friendsFrame.selection.accName))
+		BNInviteFriend(selGameAccountID)
+	elseif inviteType == "SUGGEST_INVITE" then
+		print(string.format(L["msgSuggestInviteSelFriend"], self.friendsFrame.selection.accName))
 		BNInviteFriend(selGameAccountID)
 	elseif inviteType == "REQUEST_INVITE" then
+		print(string.format(L["msgRequestInviteSelFriend"], self.friendsFrame.selection.accName))
 		BNRequestInviteFriend(selGameAccountID)
 	end
 end

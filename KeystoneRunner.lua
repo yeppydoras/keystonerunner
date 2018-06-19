@@ -1,7 +1,7 @@
 local ksr = LibStub("AceAddon-3.0"):NewAddon("KeystoneRunner", "AceBucket-3.0", "AceEvent-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
 local ver = GetAddOnMetadata("KeystoneRunner", "Version")
 
+local L = _KSRGlobal.L
 local UI = _KSRGlobal.UI
 local KSR_PREFIX = _KSRGlobal.Prefix
 local KSR_DATA_VER = _KSRGlobal.DataVer
@@ -686,7 +686,7 @@ function ksr:OnInitialize()
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
 
-	UI:init(ksr, L)
+	UI:init(self)
 	
 	-- prepare for replying addon messages
 	RegisterAddonMessagePrefix(KSR_PREFIX)

@@ -5,7 +5,8 @@ local KSR_MSGSEP = "\t"
 local KSR_HEADERREPLYKEYS = "CMD=REPLYKEYS"
 local KSR_MSGREPLYKEYS = KSR_HEADERREPLYKEYS..KSR_MSGSEP.."battleTag=%s"..KSR_MSGSEP.."dataver=%d"..KSR_MSGSEP.."keys=%s"
 local KSR_STD_TITLE = "Keystone Runner"
-_KSRGlobal = { Prefix = KSR_PREFIX,  DataVer = KSR_DATA_VER, MsgQueryKSR = KSR_MSGQUERYKSR, MsgSep = KSR_MSGSEP,
+local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
+_KSRGlobal = { L = L, Prefix = KSR_PREFIX,  DataVer = KSR_DATA_VER, MsgQueryKSR = KSR_MSGQUERYKSR, MsgSep = KSR_MSGSEP,
 	MsgHeaderReplyKeys = KSR_HEADERREPLYKEYS, MsgReplyKeys = KSR_MSGREPLYKEYS, StdTitle = KSR_STD_TITLE }
 
 function dumptbl(t)
