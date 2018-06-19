@@ -1,14 +1,14 @@
 local UI = {}
 local L
 
-local KSR_PREFIX = "KSRNNR"
-local KSR_DATA_VER = 1
-local KSR_MSGQUERYKSR = "QUERYKSR"
-local KSR_MSGSEP = "\t"
-local KSR_HEADERREPLYKEYS = "CMD=REPLYKEYS"
-local KSR_MSGREPLYKEYS = KSR_HEADERREPLYKEYS..KSR_MSGSEP.."battleTag=%s"..KSR_MSGSEP.."dataver=%d"..KSR_MSGSEP.."keys=%s"
-_KSRGlobal = { UI = UI, Prefix = KSR_PREFIX,  DataVer = KSR_DATA_VER, MsgQueryKSR = KSR_MSGQUERYKSR, MsgSep = KSR_MSGSEP,
-	MsgHeaderReplyKeys = KSR_HEADERREPLYKEYS, MsgReplyKeys = KSR_MSGREPLYKEYS }
+_KSRGlobal.UI = UI
+local KSR_PREFIX = _KSRGlobal.Prefix
+local KSR_DATA_VER = _KSRGlobal.DataVer
+local KSR_MSGQUERYKSR = _KSRGlobal.MsgQueryKSR
+local KSR_MSGSEP = _KSRGlobal.MsgSep
+local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
+local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
+local KSR_STD_TITLE = _KSRGlobal.StdTitle
 
 local MAX_QUERY_RETRY = 3
 local INTERVAL_QUERY_RETRY = 2
@@ -57,29 +57,21 @@ local BTN_TEXTURE_SUFFIX_DIS = "_DIS.tga"
 local BTN_TEXTURE_SUFFIX_PSH = "_PSH.tga"
 local CLASS_ICONS = "Interface\\AddOns\\KeystoneRunner\\media\\ClassIcon_%s.tga"
 
--- utils
-
-function dumptbl(t)
-	for k, v in pairs(t) do
-		print(k)
-		if v ~= nil then
-			print(v)
-		else
-			print("nil")
-		end
-	end
-	print(" ")
-end
-
--- http://lua-users.org/wiki/StringTrim trim6
-local function trim(s)
-	return s:match'^()%s*$' and '' or s:match'^%s*(.*%S)'
-end
-
-function setFontSize(obj, size)
-	local fontName, fontSize, fontFlags = obj:GetFont()
-	obj:SetFont(fontName, size, fontFlags)
-end
+-- StaticPopup
+	-- ref:
+		-- function StaticPopup_Show(which, text_arg1, text_arg2, data, insertedFrame)
+		-- OnAccept(dialog, dialog.data, dialog.data2)
+StaticPopupDialogs["KSR_CONFIRM_REPORTKEYS"] = {
+	text = "",
+	button1 = OKAY,
+	button2 = CANCEL,
+	OnAccept = function(self, data)
+			if data.ksr == nil or data.pid == nil or data.pid == 0 then return end
+			data.ksr:announceAllKeystones("BN_WHISPER", data.pid)
+		end,
+	exclusive = 1,
+	hideOnEscape = 1,
+}
 
 -- init
 
@@ -116,7 +108,10 @@ function UI:init(ksr, locale)
 	self.mykeysFrame = self:createSubFrame_Mykeys(self.mainFrame)
 	table.insert(self.mainFrame.tabPages, self.mykeysFrame)
 
+	self:clearSelection()
+	
 	self.timerQuery = C_Timer.NewTicker(1, function() self:onTimerQuery() end)
+	StaticPopupDialogs["KSR_CONFIRM_REPORTKEYS"].text = L["msgConfirmReportKeys"]
 end
 
 function UI:getNameFromData(data)
@@ -869,7 +864,8 @@ function UI:createSubFrame_Friends(parent)
 	sf.btnInvite = self:createFriendTBBtn(2, BTN_INVITE_TEXTURE, L["tooltipInvite"], sf)
 	sf.btnInvite:SetScript("OnClick", function(obj) self:inviteSelection() end)
 	sf.btnReportKeys = self:createFriendTBBtn(3, BTN_REPORTKEYS_TEXTURE, L["tooltipReportKeys"], sf)
-	sf.btnReportKeys:SetScript("OnClick", function(obj) self:reportKeysToSelection() end)
+	sf.btnReportKeys:SetScript("OnClick", function(obj) StaticPopup_Show("KSR_CONFIRM_REPORTKEYS", self.friendsFrame.selection.accName, nil, 
+		{ ksr = self.ksr, pid = self.friendsFrame.selection.pid }) end)
 	sf.btnQueryKeys = self:createFriendTBBtn(4, BTN_QUERYKEYS_TEXTURE, L["tooltipQueryKeys"], sf)
 	sf.btnQueryKeys:SetScript("OnClick", function(obj) self:refreshKeysOfSelection() end)
 	sf.btnQueryDGInfo = self:createFriendTBBtn(5, BTN_QUERYDGINFO_TEXTURE, L["tooltipQueryDGInfo"], sf)

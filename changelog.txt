@@ -1,3 +1,4 @@
+* 2.7: Add confirm before report keystones to friend.
 * 2.6: Fix a bug: cant get weekly best level info from blz's API which must be called until C_ChallengeMode.RequestMapInfo() returns.
 * 2.5: Fix a bug in 2.4 for new users w/o saved vars of this addon.
 * 2.4: Add a new tab: my keystones.

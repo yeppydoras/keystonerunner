@@ -1,5 +1,3 @@
-KSR_STD_TITLE = "Keystone Runner"
-
 local ksr = LibStub("AceAddon-3.0"):NewAddon("KeystoneRunner", "AceBucket-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
 local ver = GetAddOnMetadata("KeystoneRunner", "Version")
@@ -11,6 +9,7 @@ local KSR_MSGQUERYKSR = _KSRGlobal.MsgQueryKSR
 local KSR_MSGSEP = _KSRGlobal.MsgSep
 local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
 local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
+local KSR_STD_TITLE = _KSRGlobal.StdTitle
 
 local MYTHIC_KEYSTONE_ID = 138019
 local SEC_A_WEEK = 7 * 24 * 3600
@@ -43,18 +42,10 @@ https://eu.battle.net/forums/en/wow/topic/17612252415
 
 -- Utils
 
-local function isLeft(str, left)
-	return string.sub(str, 1, string.len(left)) == left
-end
-
-function ksr:log(msg)
-	print(msg)
-end
-
 function ksr:printUsage(help)
-	self:log(L["msgSelfDesp"]..format(" (ver: %s)", ver))
+	print(L["msgSelfDesp"]..format(" (ver: %s)", ver))
 	if help then
-		self:log(L["msgUsageDetail"])
+		print(L["msgUsageDetail"])
 	end
 end
 
@@ -141,7 +132,7 @@ function ksr:onChatMsg(event, ...)
 	elseif (not isMe) and self:checkFilters(msg) then
 		local hasKeyword, keyword = self:checkKeywords(msg)
 		if hasKeyword and (channel ~= self.MRT_Channel or ID ~= self.MRT_ID or (GetTime() - self.MRT_Time >= MIN_HINT_INTERVAL)) then
-			self:log(format(L["msgHintSemiAutoReply"], keyword, name))
+			print(format(L["msgHintSemiAutoReply"], keyword, name))
 			self.MRT_Time = GetTime()
 			self.MRT_Channel = channel
 			self.MRT_ID = ID
@@ -354,7 +345,7 @@ function ksr:addChatMessage(msg, channel, ID)
 		BNSendWhisper(ID, msg)
 		return true
 	else
-		self:log(msg)
+		print(msg)
 		return false
 	end
 end
@@ -397,13 +388,13 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 	local sorted = {}
 
 	if channel == "" or ID == "" then
-		self:log(L["msgCantSendMsg"])
+		print(L["msgCantSendMsg"])
 		return
 	elseif channel == "PARTY" and not IsInGroup(LE_PARTY_CATEGORY_HOME) then
-		self:log(L["msgNotInGroup"])
+		print(L["msgNotInGroup"])
 		return
 	elseif channel == "GUILD" and GetGuildInfo("player") == nil then
-		self:log(L["msgNotInGuild"])
+		print(L["msgNotInGuild"])
 		return
 	end
 
@@ -469,7 +460,7 @@ function ksr:updateKeystone()
 	end
 
 	if self:weeklyCleanUp() then
-		self:log(L["msgWeeklyCleanup"])
+		print(L["msgWeeklyCleanup"])
 		return nil, nil
 	end
 
@@ -527,10 +518,10 @@ function ksr:weeklyResetData()
 end
 
 function ksr:viewMPlusLog(filters)
-	self:log(msgSep_log)
+	print(msgSep_log)
 
 	if next(self.MPlusLog) == nil then
-		self:log(L["msgLogEmpty"])
+		print(L["msgLogEmpty"])
 	end
 
 	local logCount = 0
@@ -552,11 +543,11 @@ function ksr:viewMPlusLog(filters)
 		end
 
 		if validEntry then
-			self:log(format(msgLogEntryID, logCount)..msgBody)
+			print(format(msgLogEntryID, logCount)..msgBody)
 		end
 	end
 
-	self:log(format(L["msgLogSum"], logCount))
+	print(format(L["msgLogSum"], logCount))
 end
 
 function ksr:wipelog()
@@ -566,12 +557,12 @@ end
 function ksr:procOptions(params)
 	if params[2] == "mythicautoreply" then
 		self.Settings.autoReplyMPlusDND = not self.Settings.autoReplyMPlusDND
-		self:log(format(L["msgToggleMPlusAutoReply"], tostring(self.Settings.autoReplyMPlusDND)))
+		print(format(L["msgToggleMPlusAutoReply"], tostring(self.Settings.autoReplyMPlusDND)))
 	elseif params[2] == "keyautoreply" then
 		self.Settings.autoReplyKey = not self.Settings.autoReplyKey
-		self:log(format(L["msgToggleKeyAutoReply"], tostring(self.Settings.autoReplyKey)))
+		print(format(L["msgToggleKeyAutoReply"], tostring(self.Settings.autoReplyKey)))
 	else
-		self:log(L["msgUnknownOptCmd"])
+		print(L["msgUnknownOptCmd"])
 	end
 end
 
