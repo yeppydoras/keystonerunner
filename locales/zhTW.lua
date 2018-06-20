@@ -1,5 +1,6 @@
 -- localization file for Traditional Chinese
 local L = LibStub("AceLocale-3.0"):NewLocale("KeystoneRunner", "zhTW")
+if not L then return end
 
 -- abbr. of dungeon names
 L["DIDv7_197"] = "艾眼"

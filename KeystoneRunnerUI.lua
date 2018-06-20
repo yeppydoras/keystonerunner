@@ -122,7 +122,11 @@ function UI:getNameFromData(data)
 
 	if data.isOnline then
 		accName = FRIENDS_BNET_NAME_COLOR_CODE..accName..FONT_COLOR_CODE_CLOSE
-		charName = BNet_GetValidatedCharacterName(data.characterName, data.battleTag, data.client)
+		if _KSRGlobal.dataStub == nil then
+			charName = BNet_GetValidatedCharacterName(data.characterName, data.battleTag, data.client)
+		else
+			charName = data.characterName
+		end
 	else
 		accName = FRIENDS_GRAY_COLOR..accName..FONT_COLOR_CODE_CLOSE
 		charName = nil
@@ -180,7 +184,12 @@ end
 
 function UI:updateMyKeys()
 	if self.ksr == nil then return end
-	local keysText = self.ksr:textOfAllKeystones()
+	local keysText
+	if _KSRGlobal.dataStub == nil then
+		keysText = self.ksr:textOfAllKeystones()
+	else
+		keysText = _KSRGlobal.dataStub:textOfAllKeystones()
+	end
 	if keysText == nil or keysText == "" then return end
 	local keys = { strsplit("\n", keysText) }
 	self.mykeysFrame.smfKeys:Clear()
@@ -280,6 +289,11 @@ end
 function UI:updateFriendsData(theBattleTag)
 	local strfind = strfind
 	wipe(self.friendsData)
+	
+	if _KSRGlobal.dataStub ~= nil then
+		_KSRGlobal.dataStub:fillFriendsData(self.friendsData, self.friendsHasKSR)
+		return
+	end
 
 	local numBNetTotal, numBNetOnline = BNGetNumFriends()
 

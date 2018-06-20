@@ -9,6 +9,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale("KeystoneRunner")
 _KSRGlobal = { L = L, Prefix = KSR_PREFIX,  DataVer = KSR_DATA_VER, MsgQueryKSR = KSR_MSGQUERYKSR, MsgSep = KSR_MSGSEP,
 	MsgHeaderReplyKeys = KSR_HEADERREPLYKEYS, MsgReplyKeys = KSR_MSGREPLYKEYS, StdTitle = KSR_STD_TITLE }
 
+-- dataver == 1
+-- 	cmd, battleTag, dataver, keys
+-- 	Example: "CMD=REPLYKEYS\tbattleTag=[bt]\tdataver=1\tkeys=[strings seperated with \n]"
+	
 function dumptbl(t)
 	for k, v in pairs(t) do
 		print(k)
