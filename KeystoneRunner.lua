@@ -173,7 +173,7 @@ end
 -- Functions
 
 function ksr:canReplyMPlusDND(name)
-	if self.Settings.autoReplyMPlusDND and C_MythicPlus.IsMythicPlusActive() then
+	if self.Settings.autoReplyMPlusDND and C_ChallengeMode.IsChallengeModeActive() then
 		return true
 	else
 		return false
@@ -455,7 +455,7 @@ end
 
 function ksr:updateKeystone()
 	-- do not execute update during ChallengeMode, otherwise will get an invalid msg "active keystone (level)-1"
-	if C_MythicPlus.IsMythicPlusActive() then
+	if C_ChallengeMode.IsChallengeModeActive() then
 		return nil, nil
 	end
 
