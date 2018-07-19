@@ -173,7 +173,7 @@ end
 -- Functions
 
 function ksr:canReplyMPlusDND(name)
-	if self.Settings.autoReplyMPlusDND and C_ChallengeMode.IsChallengeModeActive() then
+	if self.Settings.autoReplyMPlusDND and C_MythicPlus.IsMythicPlusActive() then
 		return true
 	else
 		return false
@@ -193,7 +193,7 @@ function ksr:getChallengeModeInfo()
 		return 0
 	end
 
-	local mapName = C_ChallengeMode.GetMapInfo(C_ChallengeMode.GetActiveChallengeMapID())
+	local mapName = C_ChallengeMode.GetMapUIInfo(C_ChallengeMode.GetActiveChallengeMapID())
 	local level = C_ChallengeMode.GetActiveKeystoneInfo()
 	local bossCount = 0
 	local killCount = 0
@@ -455,7 +455,7 @@ end
 
 function ksr:updateKeystone()
 	-- do not execute update during ChallengeMode, otherwise will get an invalid msg "active keystone (level)-1"
-	if C_ChallengeMode.IsChallengeModeActive() then
+	if C_MythicPlus.IsMythicPlusActive() then
 		return nil, nil
 	end
 
@@ -469,17 +469,16 @@ function ksr:updateKeystone()
 		for slot = 1, numSlots do
 			if GetContainerItemID(bag, slot) == MYTHIC_KEYSTONE_ID then
 				local orgLink = GetContainerItemLink(bag, slot)
-				local parts = { strsplit(":", orgLink) }
-
-				local dungeonID = tonumber(parts[2])
-				local keystoneLevel = tonumber(parts[3])
+				
+				local dungeonID = C_MythicPlus.GetOwnedKeystoneChallengeMapID()
+				local keystoneLevel = C_MythicPlus.GetOwnedKeystoneLevel()
 
 				local newKeystone = { name = self.name, class = self.classL, classE = self.classE, link = orgLink, dungeonID = dungeonID, keystoneLevel = keystoneLevel }
 				local oldKeystone = self.Keystones[self.name]
 				local changed = ((oldKeystone == nil) or (oldKeystone.keystoneLevel ~= newKeystone.keystoneLevel) or (oldKeystone.dungeonID ~= newKeystone.dungeonID))
 				self.Keystones[self.name] = newKeystone
 
-				-- Send Addon message is better, instead of call UI function
+				-- Send Addon message is better, instead of calling UI function
 				if changed and UI ~= nil then
 					UI:updateMyKeys()
 				end
@@ -614,7 +613,7 @@ end
 
 function ksr:initWeeklyBest()
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
-		local _, _, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(mapID)
+		local _, weeklyBestLevel = C_MythicPlus.GetWeeklyBestForMap(mapID)
 		if weeklyBestLevel then
 			self:updateWeeklyBest(weeklyBestLevel)
 		end
@@ -689,7 +688,7 @@ function ksr:OnInitialize()
 	UI:init(self)
 	
 	-- prepare for replying addon messages
-	RegisterAddonMessagePrefix(KSR_PREFIX)
+	C_ChatInfo.RegisterAddonMessagePrefix(KSR_PREFIX)
 	self.eventFrame = CreateFrame("FRAME")
 	self.eventFrame:RegisterEvent("BN_CHAT_MSG_ADDON")
 	self.eventFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
@@ -701,7 +700,7 @@ function ksr:OnInitialize()
 		self:printUsage(false)
 		local keystone, _ = self:updateKeystone()
 		self:registerEvent(keystone)
-		C_ChallengeMode.RequestMapInfo()
+		C_MythicPlus.RequestMapInfo()
 	end)
 
 	-- misc
