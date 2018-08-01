@@ -1,3 +1,4 @@
+* 2.12: Fix a bug: Can't reply to #key while whisper isn't from Battle.net.
 * 2.11: Update ace 3 libs
 * 2.10: Fix a bug: judgement of IsChallengeModeActive
 * 2.9: Update for 8.0.

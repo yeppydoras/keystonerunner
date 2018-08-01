@@ -118,9 +118,9 @@ function ksr:onChatMsg(event, ...)
 	-- AutoReply -> ReplyMPlusDND -> isAFK -> normal keywords & hint
 	if self.Settings.autoReplyKey and msg == kwAutoReply then
 		-- feat: prevent spamming the whisper channel
-		if (chcannel == "PARTY") then
+		if (channel == "PARTY") then
 			self:announceAllKeystones(channel, ID, true, kwAutoReply)
-		elseif (chcannel == "WHISPER" or channel == "BN_WHISPER") and self:checkAutoReply(ID) then
+		elseif (channel == "WHISPER" or channel == "BN_WHISPER") and self:checkAutoReply(ID) then
 			self:announceAllKeystones(channel, ID, true, kwAutoReply)
 			self:updateAutoReply(ID, channel)
 		end
