@@ -1,6 +1,7 @@
 -- localization file for English
 local L = LibStub("AceLocale-3.0"):NewLocale("KeystoneRunner", "enUS", true)
 
+
 -- abbr. of dungeon names
 L["DIDv7_197"] = "EOA"
 L["DIDv7_198"] = "DHT"
@@ -15,6 +16,17 @@ L["DIDv7_227"] = "LOWR"
 L["DIDv7_233"] = "COEN"
 L["DIDv7_234"] = "UPPR"
 L["DIDv7_239"] = "SEAT"
+-- v8
+L["DIDv8_244"] = "AD"
+L["DIDv8_245"] = "FH"
+L["DIDv8_246"] = "TD"
+L["DIDv8_247"] = "TM"
+L["DIDv8_248"] = "WM"
+L["DIDv8_249"] = "KR"
+L["DIDv8_250"] = "TOS"
+L["DIDv8_251"] = "UNDR"
+L["DIDv8_252"] = "SOTS"
+L["DIDv8_353"] = "SIEGE"
 
 -- abbr. of classes
 L["ABBR_HUNTER"] = "Hunter"

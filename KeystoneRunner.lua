@@ -319,7 +319,7 @@ function ksr:textOfKeystone(keystone, plainText)
 	end
 
 	if keystone.keystoneLevel ~= 0 and keystone.dungeonID ~= 0 then
-		return string.format("[%s%d]", L[string.format("DIDv7_%d", keystone.dungeonID)], keystone.keystoneLevel).." "..strNameClass
+		return string.format("[%s%d]", L[string.format("DIDv8_%d", keystone.dungeonID)], keystone.keystoneLevel).." "..strNameClass
 	else
 		return L["msgNoKeystone"].." "..strNameClass
 	end
