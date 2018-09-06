@@ -11,7 +11,7 @@ local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
 local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
 local KSR_STD_TITLE = _KSRGlobal.StdTitle
 
-local MYTHIC_KEYSTONE_ID = 138019
+local MYTHIC_KEYSTONE_ID = 158923
 local SEC_A_WEEK = 7 * 24 * 3600
 
 local MIN_REPLY_INTERVAL = 15 * 60
