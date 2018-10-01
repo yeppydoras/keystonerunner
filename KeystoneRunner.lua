@@ -21,6 +21,7 @@ local MAX_MPLUS_LOG = 1000
 local msgSep_log = "===== Weekly Mythic+ Log ====="
 local msgLogEntryID = " [%s] "
 
+local MAX_CHAR_LEVEL = 120
 local kwAutoReply = "#key"
 local kwKeywords = "keystone|鑰石|钥石|key|鑰匙|钥匙|m%+|大秘|大米|保底|低保"
 local kwFilters = "<keystone runner>|keystone runner|."
@@ -166,7 +167,8 @@ function ksr:onEvent(event, ...)
 		end
 	elseif event == "CHALLENGE_MODE_MAPS_UPDATE" then
 		self:initWeeklyBest()
-		self.eventFrame:UnregisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+		-- Keep an eye on CHALLENGE_MODE_MAPS_UPDATE
+		-- self.eventFrame:UnregisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
 	end
 end
 
@@ -463,6 +465,10 @@ function ksr:updateKeystone()
 		print(L["msgWeeklyCleanup"])
 		return nil, nil
 	end
+	
+	if UnitLevel("player") < MAX_CHAR_LEVEL then
+		self.Keystones[self.name] = nil
+	end
 
 	for bag = 0, NUM_BAG_SLOTS do
 		local numSlots = GetContainerNumSlots(bag)
@@ -612,11 +618,19 @@ function ksr:initKeywords()
 end
 
 function ksr:initWeeklyBest()
+	local maxLevel = 0
 	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
 		local _, weeklyBestLevel = C_MythicPlus.GetWeeklyBestForMap(mapID)
-		if weeklyBestLevel then
-			self:updateWeeklyBest(weeklyBestLevel)
+		if weeklyBestLevel and weeklyBestLevel > maxLevel then
+			maxLevel = weeklyBestLevel
 		end
+	end
+	
+	if maxLevel ~= 0 then
+		self:updateWeeklyBest(weeklyBestLevel)
+	else
+		-- Remove self weeklyBestLevel from list
+		self.WeeklyBest[self.name] = nil
 	end
 end
 
