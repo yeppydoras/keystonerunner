@@ -76,6 +76,7 @@ L["msgConfirmReportKeys"] = "Report all my keystones to friend: \n\n"..FRIENDS_B
 L["msgInviteSelFriend"] = KSRPrefixWColor.."Invite"..FRIENDS_BNET_NAME_COLOR_CODE.." %s "..FONT_COLOR_CODE_CLOSE.."to your group."
 L["msgSuggestInviteSelFriend"] = KSRPrefixWColor.."Suggest inviting"..FRIENDS_BNET_NAME_COLOR_CODE.." %s "..FONT_COLOR_CODE_CLOSE.."to your group."
 L["msgRequestInviteSelFriend"] = KSRPrefixWColor.."Request to join"..FRIENDS_BNET_NAME_COLOR_CODE.." %s"..FONT_COLOR_CODE_CLOSE.."'s group."
+L["msgMPSwitchLootSpec"] = KSRPrefixWColor.."Switch loot specialization..."
 
 -- for components
 L["strMyKeystones"] = "--- My Keystones -----------------------------------"
@@ -87,8 +88,10 @@ L["tooltipQueryDGInfo"] = "Query friend's current Mythic+ progress"
 L["strToggleFriendsFrame"] = "Toggle friend window"
 L["btnLabelBattlenetFriends"] = "Battle.net friends"
 L["btnLabelMyKeystones"] = "My keystones"
+L["btnMPlusLootSpec"] = "M+ loot spec"
 L["btnLabelSendToParty"] = "Send to party"
 L["btnLabelSendToGuild"] = "Send to guild"
 L["btnLabelSendToSay"] = "Send to say"
+L["dropDownDefLootSpec"] = "Default"
 -- others
 L["msgDontSpam"] = KSRPrefix.."Enough already.(Irritated) <Auto report keystones(#key) is not available to me for a short time>"

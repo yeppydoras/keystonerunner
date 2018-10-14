@@ -9,6 +9,7 @@ local KSR_MSGSEP = _KSRGlobal.MsgSep
 local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
 local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
 local KSR_STD_TITLE = _KSRGlobal.StdTitle
+local KSR_MPLOOTSPEC = _KSRGlobal.MPLootSpec
 
 local MAX_QUERY_RETRY = 3
 local INTERVAL_QUERY_RETRY = 2
@@ -106,6 +107,8 @@ function UI:init(ksr)
 	table.insert(self.mainFrame.tabPages, self.friendsFrame)
 	self.mykeysFrame = self:createSubFrame_Mykeys(self.mainFrame)
 	table.insert(self.mainFrame.tabPages, self.mykeysFrame)
+	self.mplootspecFrame = self:createSubFrame_MPLootSpec(self.mainFrame)
+	table.insert(self.mainFrame.tabPages, self.mplootspecFrame)
 	
 	self.timerQuery = C_Timer.NewTicker(1, function() self:onTimerQuery() end)
 	StaticPopupDialogs["KSR_CONFIRM_REPORTKEYS"].text = L["msgConfirmReportKeys"]
@@ -957,6 +960,90 @@ function UI:createSubFrame_Mykeys(parent)
 	return sf
 end
 
+function UI:createSubFrame_MPLootSpec(parent)
+
+	local function OnClick_DropDown(btnDropDown, dropdown)
+		UIDropDownMenu_SetSelectedValue(dropdown, btnDropDown.value)
+		if btnDropDown.value == 0 then
+			self.ksr.MPLootSpec[format(KSR_MPLOOTSPEC, self.ksr.name, dropdown.keyID)] = nil
+		else
+			self.ksr.MPLootSpec[format(KSR_MPLOOTSPEC, self.ksr.name, dropdown.keyID)] = btnDropDown.value
+		end
+	end
+
+	local function initDropDown(frame)
+		local selVal = UIDropDownMenu_GetSelectedValue(frame)
+		local info = UIDropDownMenu_CreateInfo()
+		info.func = OnClick_DropDown
+		info.arg1 = frame
+		
+		for i, spec in ipairs(self.ksr.lootSpec) do
+			info.text = spec.name
+			info.value = spec.id
+			info.checked = false
+			info.padding = 50
+			UIDropDownMenu_AddButton(info)
+		end
+	end
+
+	local sf = CreateFrame("FRAME", nil, parent)
+	sf:Hide()
+	sf:SetPoint("TOPLEFT", parent, "TOPLEFT", EDGE_SIZE, -EDGE_SIZE - HEIGHT_TITLE)
+	sf:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -EDGE_SIZE, EDGE_SIZE)
+	
+	sf.dropdowns = {}
+	
+	local keyIDs = _KSRGlobal.keyIDs
+	
+	for i, keyID in ipairs(keyIDs) do
+		local dropdown = CreateFrame("Frame", "ddmMPLootSpec"..i, sf, "UIDropDownMenuTemplate")
+		dropdown.keyID = keyID
+		UIDropDownMenu_Initialize(dropdown, initDropDown)
+		
+		if i == 1 then
+			dropdown:SetPoint("TOPLEFT", sf, "TOPLEFT", 120, -EDGE_SIZE)
+		else
+			dropdown:SetPoint("TOPLEFT", sf.dropdowns[i - 1], "BOTTOMLEFT", 0, -12)
+		end
+		
+		_G["ddmMPLootSpec"..i.."Middle"]:SetWidth(150)
+		
+		dropdown.label = sf:CreateFontString(nil, "ARTWORK")
+		dropdown.label:SetPoint("TOPLEFT", dropdown, "TOPLEFT", -120, 0)
+		dropdown.label:SetPoint("BOTTOMRIGHT", dropdown, "BOTTOMLEFT", -8, 8)
+		dropdown.label:SetFontObject(GameFontNormalLarge)
+		dropdown.label:SetJustifyH("RIGHT")
+		dropdown.label:SetJustifyV("MIDDLE")
+		dropdown.label:SetText(L[string.format("DIDv8_%d", keyID)])
+
+		if i == #keyIDs then
+			sf.labelBeta = sf:CreateFontString(nil, "ARTWORK")
+			sf.labelBeta:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -EDGE_SIZE)
+			sf.labelBeta:SetFontObject(GameFontNormalLarge)
+			sf.labelBeta:SetText("* BETA *")
+		end
+		
+		dropdown:SetScript("OnShow", function(obj)
+				local mpLootSpec = self.ksr.MPLootSpec[format(KSR_MPLOOTSPEC, self.ksr.name, obj.keyID)]
+				if mpLootSpec ~= nil then
+					UIDropDownMenu_SetSelectedValue(obj, mpLootSpec)
+					for _, spec in ipairs(self.ksr.lootSpec) do
+						if spec.id == mpLootSpec then
+							UIDropDownMenu_SetText(obj, spec.name)
+						end
+					end
+				else
+					UIDropDownMenu_SetSelectedValue(obj, 0)
+					UIDropDownMenu_SetText(obj, self.ksr.lootSpec[1].name)
+				end
+			end)
+		
+		table.insert(sf.dropdowns, dropdown)
+	end
+	
+	return sf
+end
+
 function UI:createMainFrame()
 	local mf = CreateFrame("FRAME", "KeystoneRunnerMainFrame", UIParent)
 	mf:Hide()
@@ -997,7 +1084,11 @@ function UI:createMainFrame()
 	mf.tabMyKeystones:SetPoint("LEFT", mf.tabBNFriends, "RIGHT", -15, 0)
 	mf.tabMyKeystones:SetText(L["btnLabelMyKeystones"])
 	mf.tabMyKeystones:SetScript("OnClick", function(obj) self:onMainFrameTabClick(obj) end)
-	PanelTemplates_SetNumTabs(mf, 2)
+	mf.tabMPlusLootSpec = CreateFrame("BUTTON", "KeystoneRunnerMainFrameTab3", mf, "CharacterFrameTabButtonTemplate", 3)
+	mf.tabMPlusLootSpec:SetPoint("LEFT", mf.tabMyKeystones, "RIGHT", -15, 0)
+	mf.tabMPlusLootSpec:SetText(L["btnMPlusLootSpec"])
+	mf.tabMPlusLootSpec:SetScript("OnClick", function(obj) self:onMainFrameTabClick(obj) end)
+	PanelTemplates_SetNumTabs(mf, 3)
 	mf.selectedTab = 1
 	PanelTemplates_UpdateTabs(mf)
 	-- Events

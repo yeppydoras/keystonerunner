@@ -1,3 +1,4 @@
+* 2.16: Beta: Switch loot specification while starting a M+ challenge.
 * 2.15: Fix bugs: Correct wrong data returned by C_MythicPlus.GetWeeklyBestForMap. Remove characters from list which level < 120 while login.
 * 2.14: Update keystone itemID for BFA
 * 2.13: Update dungeon ID for BFA.

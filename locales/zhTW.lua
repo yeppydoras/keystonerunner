@@ -76,6 +76,7 @@ L["msgConfirmReportKeys"] = "發送我的鑰石列表給好友：\n\n"..FRIENDS_
 L["msgInviteSelFriend"] = KSRPrefixWColor.."邀請好友"..FRIENDS_BNET_NAME_COLOR_CODE.." %s "..FONT_COLOR_CODE_CLOSE.."加入隊伍"
 L["msgSuggestInviteSelFriend"] = KSRPrefixWColor.."建議邀請好友"..FRIENDS_BNET_NAME_COLOR_CODE.." %s "..FONT_COLOR_CODE_CLOSE.."加入隊伍"
 L["msgRequestInviteSelFriend"] = KSRPrefixWColor.."請求加入好友"..FRIENDS_BNET_NAME_COLOR_CODE.." %s "..FONT_COLOR_CODE_CLOSE.."的隊伍"
+L["msgMPSwitchLootSpec"] = KSRPrefixWColor.."切換拾取專精..."
 
 -- for components
 L["strMyKeystones"] = "--- 我持有的鑰石 -----------------------------------"
@@ -87,8 +88,10 @@ L["tooltipQueryDGInfo"] = "查看好友當前大秘境的進度"
 L["strToggleFriendsFrame"] = "切換 Battle.net 好友窗口"
 L["btnLabelBattlenetFriends"] = "Battle.net好友"
 L["btnLabelMyKeystones"] = "我的鑰石"
+L["btnMPlusLootSpec"] = "M+拾取專精"
 L["btnLabelSendToParty"] = "發送到小隊"
 L["btnLabelSendToGuild"] = "發送到公會"
 L["btnLabelSendToSay"] = "白字「說」"
+L["dropDownDefLootSpec"] = "預設"
 -- others
 L["msgDontSpam"] = KSRPrefix.."這就是好奇的代價！(對你施放沈默)<短時間內無法再使用自動報告鑰石功能打擾我>"

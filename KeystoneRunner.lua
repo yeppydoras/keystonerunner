@@ -10,6 +10,7 @@ local KSR_MSGSEP = _KSRGlobal.MsgSep
 local KSR_HEADERREPLYKEYS = _KSRGlobal.MsgHeaderReplyKeys
 local KSR_MSGREPLYKEYS = _KSRGlobal.MsgReplyKeys
 local KSR_STD_TITLE = _KSRGlobal.StdTitle
+local KSR_MPLOOTSPEC = _KSRGlobal.MPLootSpec
 
 local MYTHIC_KEYSTONE_ID = 158923
 local SEC_A_WEEK = 7 * 24 * 3600
@@ -169,6 +170,16 @@ function ksr:onEvent(event, ...)
 		self:initWeeklyBest()
 		-- Keep an eye on CHALLENGE_MODE_MAPS_UPDATE
 		-- self.eventFrame:UnregisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+	elseif event == "CHALLENGE_MODE_START" then
+		local insID = ...
+		local keyID = _KSRGlobal.ins_key_ID[tostring(insID)]
+		local strKey = format(KSR_MPLOOTSPEC, self.name, keyID)
+		
+		local mpLootSpec = self.MPLootSpec[strKey]
+		if mpLootSpec ~= nil then
+			print(L["msgMPSwitchLootSpec"])
+			SetLootSpecialization(mpLootSpec)
+		end
 	end
 end
 
@@ -627,7 +638,7 @@ function ksr:initWeeklyBest()
 	end
 	
 	if maxLevel ~= 0 then
-		self:updateWeeklyBest(weeklyBestLevel)
+		self:updateWeeklyBest(maxLevel)
 	else
 		-- Remove self weeklyBestLevel from list
 		self.WeeklyBest[self.name] = nil
@@ -665,6 +676,7 @@ function ksr:OnInitialize()
 	self.Filters = {}
 	self.timeReply = {}
 	self.autoReply = {}
+	self.lootSpec = {}
 	local sname = UnitName("player")
 	self.name = string.format("%s-%s", sname, GetRealmName())
 	self.classL, self.classE = UnitClass("player")
@@ -678,10 +690,12 @@ function ksr:OnInitialize()
 	-- init db
 	self.Keystones = {}
 	self.WeeklyBest = {}
+	self.MPLootSpec = {}
 	self.MPlusLog = {}
 	local dbDefaults = {
 		keystones = {},
 		weeklybest = {},
+		mplootspec = {},
 		mpluslog = {},
 		settings = {
 			nextResetTime = 1509462000,
@@ -696,6 +710,7 @@ function ksr:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("KeystoneRunnerDB", { faction = dbDefaults }, true).faction
 	self.Keystones = self.db.keystones
 	self.WeeklyBest = self.db.weeklybest
+	self.MPLootSpec = self.db.mplootspec
 	self.MPlusLog = self.db.mpluslog
 	self.Settings = self.db.settings
 
@@ -706,6 +721,7 @@ function ksr:OnInitialize()
 	self.eventFrame = CreateFrame("FRAME")
 	self.eventFrame:RegisterEvent("BN_CHAT_MSG_ADDON")
 	self.eventFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+	self.eventFrame:RegisterEvent("CHALLENGE_MODE_START")
 	self.eventFrame:SetScript("OnEvent", function(obj, event, ...) self:onEvent(event, ...) end)
 
 	-- init keystone, events, player data and UI
@@ -715,6 +731,12 @@ function ksr:OnInitialize()
 		local keystone, _ = self:updateKeystone()
 		self:registerEvent(keystone)
 		C_MythicPlus.RequestMapInfo()
+		local numLootSpec = GetNumSpecializations()
+		table.insert(self.lootSpec, { name = L["dropDownDefLootSpec"], id = 0 })
+		for i = 1, numLootSpec do
+			local id, name = GetSpecializationInfo(i)
+			table.insert(self.lootSpec, { name = name, id = id })
+		end
 	end)
 
 	-- misc

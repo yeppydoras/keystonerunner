@@ -3,7 +3,7 @@
 ## Author: 一對小兔牙@世界之樹，呆萌包子@天空之墻
 ## Notes: Assemble your mythic+ team in a better way: by searching battle.net friends and sharing keystones information.
 ## Notes-zhTW: 快捷組建你的地城挑戰隊伍：搜索Battle.net好友并和他們互通鑰石信息。
-## Version: 2.15
+## Version: 2.16
 ## SavedVariables: KeystoneRunnerDB
 
 embeds.xml
