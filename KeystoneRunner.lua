@@ -481,29 +481,31 @@ function ksr:updateKeystone()
 		self.Keystones[self.name] = nil
 	end
 
-	for bag = 0, NUM_BAG_SLOTS do
-		local numSlots = GetContainerNumSlots(bag)
-		for slot = 1, numSlots do
-			if GetContainerItemID(bag, slot) == MYTHIC_KEYSTONE_ID then
-				local orgLink = GetContainerItemLink(bag, slot)
+	-- for bag = 0, NUM_BAG_SLOTS do
+		-- local numSlots = GetContainerNumSlots(bag)
+		-- for slot = 1, numSlots do
+			-- if GetContainerItemID(bag, slot) == MYTHIC_KEYSTONE_ID then
+				-- local orgLink = GetContainerItemLink(bag, slot)
 				
-				local dungeonID = C_MythicPlus.GetOwnedKeystoneChallengeMapID()
-				local keystoneLevel = C_MythicPlus.GetOwnedKeystoneLevel()
+	local dungeonID = C_MythicPlus.GetOwnedKeystoneChallengeMapID()
+	local keystoneLevel = C_MythicPlus.GetOwnedKeystoneLevel()
 
-				local newKeystone = { name = self.name, class = self.classL, classE = self.classE, link = orgLink, dungeonID = dungeonID, keystoneLevel = keystoneLevel }
-				local oldKeystone = self.Keystones[self.name]
-				local changed = ((oldKeystone == nil) or (oldKeystone.keystoneLevel ~= newKeystone.keystoneLevel) or (oldKeystone.dungeonID ~= newKeystone.dungeonID))
-				self.Keystones[self.name] = newKeystone
+	if dungeonID and dungeonID > 0 and keystoneLevel and keystoneLevel > 0 then
+		local newKeystone = { name = self.name, class = self.classL, classE = self.classE, dungeonID = dungeonID, keystoneLevel = keystoneLevel }
+		local oldKeystone = self.Keystones[self.name]
+		local changed = ((oldKeystone == nil) or (oldKeystone.keystoneLevel ~= newKeystone.keystoneLevel) or (oldKeystone.dungeonID ~= newKeystone.dungeonID))
+		self.Keystones[self.name] = newKeystone
 
-				-- Send Addon message is better, instead of calling UI function
-				if changed and UI ~= nil then
-					UI:updateMyKeys()
-				end
-				
-				return self.Keystones[self.name], changed
-			end
+		-- Send Addon message is better, instead of calling UI function
+		if changed and UI ~= nil then
+			UI:updateMyKeys()
 		end
+		
+		return self.Keystones[self.name], changed
 	end
+			-- end
+		-- end
+	-- end
 	-- no keystone
 	return nil, nil
 end
