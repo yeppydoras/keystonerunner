@@ -583,6 +583,8 @@ function ksr:calWeeklyBestByLog()
 			if selfName == self.name and item.level and item.level > maxLevel then
 				maxLevel = item.level
 			end
+		else
+			return maxLevel
 		end
 	end
 	return maxLevel
