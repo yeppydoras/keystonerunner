@@ -1,3 +1,4 @@
+* 2.18: Fix bug: ChatFrame_SendSmartTell to ChatFrame_SendBNetTell and weekly best level lose issue. Add command "ch".
 * 2.17: Fix bugs: Blz changed Keystone's ItemID again?
 * 2.16: Beta: Switch loot specification while starting a M+ challenge.
 * 2.15: Fix bugs: Correct wrong data returned by C_MythicPlus.GetWeeklyBestForMap. Remove characters from list which level < 120 while login.

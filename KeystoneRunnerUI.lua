@@ -353,7 +353,7 @@ function UI:whisperToSelection()
 	local selAccName = self.friendsFrame.selection.accName
 	if selAccName ~= nil and selAccName ~= "" then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		ChatFrame_SendSmartTell(selAccName)
+		ChatFrame_SendBNetTell(selAccName)
 	end
 end
 
