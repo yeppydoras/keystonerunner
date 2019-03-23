@@ -351,6 +351,9 @@ function ksr:addChatMessage(msg, channel, ID)
 	if (channel == "PARTY" and IsInGroup()) or (channel == "GUILD" and GetGuildInfo("player")) or (channel == "SAY") then
 		SendChatMessage(msg, channel)
 		return true
+	elseif (channel == "CHANNEL") then
+		SendChatMessage(msg, channel, nil, ID)
+		return true
 	elseif (channel == "WHISPER") and (ID ~= nil) then
 		SendChatMessage(msg, channel, nil, ID)
 		return true
@@ -568,6 +571,23 @@ function ksr:viewMPlusLog(filters)
 	print(format(L["msgLogSum"], logCount))
 end
 
+function ksr:calWeeklyBestByLog()
+	local maxLevel = 0
+	for i = #self.MPlusLog, 1, -1 do
+		local item = self.MPlusLog[i]
+		local logDateTime = item.dateTime
+		local logY, logM, logD, logH, logI = logDateTime:match("(%d+)/(%d+)/(%d+) (%d+):(%d+)")
+		local logTime = time({day = logD, month = logM, year = logY, hour = logH, min = logI, sec= 0})
+		if logTime > self.Settings.nextResetTime - SEC_A_WEEK then
+			local selfName, _ = strsplit(" ", item.partyMember, 2)
+			if selfName == self.name and item.level and item.level > maxLevel then
+				maxLevel = item.level
+			end
+		end
+	end
+	return maxLevel
+end
+
 function ksr:wipelog()
 	wipe(self.MPlusLog)
 end
@@ -599,6 +619,8 @@ function ksr:slashCmd(cmd)
 		self:announceAllKeystones("WHISPER", cmdp[2])
 	elseif cmd == "r" or cmd == "reply" then
 		self:announceAllKeystones(self.MRT_Channel, self.MRT_ID)
+	elseif (cmdp[1] == "ch" or cmdp[1] == "channel") and #cmdp == 2 then
+		self:announceAllKeystones("CHANNEL", cmdp[2])
 	elseif (cmdp[1] == "opt" or cmdp[1] == "option") and #cmdp >= 2 then
 		self:procOptions(cmdp)
 	-- advanced commands
@@ -638,7 +660,13 @@ function ksr:initWeeklyBest()
 			maxLevel = weeklyBestLevel
 		end
 	end
-	
+
+	-- if GetWeeklyBestForMap not work, try use log calculate weekly best level
+	if maxLevel == 0 then
+		local logMaxLv = self:calWeeklyBestByLog()
+		maxLevel = logMaxLv
+	end
+
 	if maxLevel ~= 0 then
 		self:updateWeeklyBest(maxLevel)
 	else
