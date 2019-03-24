@@ -1,3 +1,4 @@
+* 2.19: Rewrite get current week best level function because get weekly best level by log sometimes will return error result.
 * 2.18: Fix bug: ChatFrame_SendSmartTell to ChatFrame_SendBNetTell and weekly best level lose issue. Add command "ch".
 * 2.17: Fix bugs: Blz changed Keystone's ItemID again?
 * 2.16: Beta: Switch loot specification while starting a M+ challenge.

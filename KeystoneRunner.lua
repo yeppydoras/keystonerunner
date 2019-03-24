@@ -428,7 +428,7 @@ function ksr:announceAllKeystones(channel, ID, autoReply, keyword)
 		table.sort(sorted, function(a, b) return a.keystoneLevel > b.keystoneLevel end)
 
 		for i = 1, #sorted do
-			local msg = "."..self:textOfKeystone(sorted[i], plainText).." "..self:textOfWeeklyBest(sorted[i])
+			local msg = " "..self:textOfKeystone(sorted[i], plainText).." "..self:textOfWeeklyBest(sorted[i])
 			retVal = self:addChatMessage(msg, channel, ID) and retVal
 		end
 	else
@@ -571,25 +571,6 @@ function ksr:viewMPlusLog(filters)
 	print(format(L["msgLogSum"], logCount))
 end
 
-function ksr:calWeeklyBestByLog()
-	local maxLevel = 0
-	for i = #self.MPlusLog, 1, -1 do
-		local item = self.MPlusLog[i]
-		local logDateTime = item.dateTime
-		local logY, logM, logD, logH, logI = logDateTime:match("(%d+)/(%d+)/(%d+) (%d+):(%d+)")
-		local logTime = time({day = logD, month = logM, year = logY, hour = logH, min = logI, sec= 0})
-		if logTime > self.Settings.nextResetTime - SEC_A_WEEK then
-			local selfName, _ = strsplit(" ", item.partyMember, 2)
-			if selfName == self.name and item.level and item.level > maxLevel then
-				maxLevel = item.level
-			end
-		else
-			return maxLevel
-		end
-	end
-	return maxLevel
-end
-
 function ksr:wipelog()
 	wipe(self.MPlusLog)
 end
@@ -656,17 +637,9 @@ end
 
 function ksr:initWeeklyBest()
 	local maxLevel = 0
-	for _, mapID in pairs(C_ChallengeMode.GetMapTable()) do
-		local _, weeklyBestLevel = C_MythicPlus.GetWeeklyBestForMap(mapID)
-		if weeklyBestLevel and weeklyBestLevel > maxLevel then
-			maxLevel = weeklyBestLevel
-		end
-	end
-
-	-- if GetWeeklyBestForMap not work, try use log calculate weekly best level
-	if maxLevel == 0 then
-		local logMaxLv = self:calWeeklyBestByLog()
-		maxLevel = logMaxLv
+	local currentWeekBestLevel, _, _, _ = C_MythicPlus.GetWeeklyChestRewardLevel()
+	if currentWeekBestLevel and currentWeekBestLevel > maxLevel then
+		maxLevel = currentWeekBestLevel
 	end
 
 	if maxLevel ~= 0 then
